@@ -6,9 +6,9 @@ const GOALS_LINES = [1.5, 2.5, 3.5, 4.5];
 const CORNERS_LINES = [8.5, 9.5, 10.5];
 const CARDS_LINES = [3.5, 4.5, 5.5];
 const TICKET_CONFIGS = [
-  { key: "safe", target: 5, name: "Safe 5", desc: "Combinație echilibrată pentru o cotă în jur de 5." },
-  { key: "value", target: 10, name: "Value 10", desc: "Variantă intermediară, cu randament mai bun și risc controlat." },
-  { key: "boost", target: 20, name: "Boost 20", desc: "Variantă extinsă, pentru cotă mare fără selecții forțate." }
+  { key: "safe", target: 5, name: "Safe 5", desc: "Combinație echilibrată pentru o cotă în jur de 5.", minOdds: 1.15, maxOdds: 1.38, preferredPicks: [4, 5] },
+  { key: "value", target: 10, name: "Value 10", desc: "Variantă intermediară, cu randament mai bun și risc controlat.", minOdds: 1.22, maxOdds: 1.5, preferredPicks: [5, 6] },
+  { key: "boost", target: 20, name: "Boost 20", desc: "Variantă extinsă, pentru cotă mare fără selecții forțate.", minOdds: 1.28, maxOdds: 1.6, preferredPicks: [6, 7] }
 ];
 
 let UI = { index: null, leagues: [], matches: [], matchByFixtureId: new Map(), matchRecommendations: new Map() };
@@ -527,7 +527,6 @@ function renderMatchesList() {
     ? "Toate ligile"
     : league?.categoryName ? `${league.categoryName} • ${league.name}` : league?.name || "Liga selectată";
 
-  el("filterSummary").textContent = `${leagueLabel} • homepage-ul afișează un singur pariu recomandat pentru fiecare meci.`;
   el("matchesSubtitle").textContent = list.length
     ? `${fmtDayLong(current.day)} • ${leagueLabel}`
     : `${fmtDayLong(current.day)} • nicio partidă în filtrul curent`;
@@ -676,7 +675,7 @@ function renderTicketVariants(day) {
 
   const renderedTickets = new Map();
   for (const config of TICKET_CONFIGS) {
-    renderedTickets.set(config.key, buildTicketForTarget(matches, config.target));
+    renderedTickets.set(config.key, buildTicketForTarget(matches, config));
     const button = document.createElement("button");
     button.className = "ticket-pill";
     button.type = "button";
@@ -773,14 +772,27 @@ function renderTicketVariants(day) {
   viewer.appendChild(article);
 }
 
-function evaluateTicket(picks, target) {
+function evaluateTicket(picks, config) {
   if (!picks.length) return null;
+  const target = config.target;
   const totalOdds = picks.reduce((product, pick) => product * pick.bookOdds, 1);
   const combinedProbability = picks.reduce((product, pick) => product * pick.p, 1);
   const avgP = picks.reduce((sum, pick) => sum + pick.p, 0) / picks.length;
   const closeness = Math.abs(totalOdds - target) / target;
   const inTargetWindow = totalOdds >= target * 0.82 && totalOdds <= target * 1.18;
-  const score = closeness * 8 + (1 - avgP) * 2.2 + (1 - combinedProbability) * 0.6 + picks.length * 0.04 - (inTargetWindow ? 0.35 : 0);
+  const preferredMin = config.preferredPicks?.[0] ?? 2;
+  const preferredMax = config.preferredPicks?.[1] ?? 7;
+  const preferredRangePenalty = picks.length < preferredMin
+    ? (preferredMin - picks.length) * 0.3
+    : picks.length > preferredMax
+      ? (picks.length - preferredMax) * 0.22
+      : 0;
+  const oddsPenalty = picks.reduce((sum, pick) => {
+    if (pick.bookOdds < config.minOdds) return sum + (config.minOdds - pick.bookOdds) * 1.8;
+    if (pick.bookOdds > config.maxOdds) return sum + (pick.bookOdds - config.maxOdds) * 2.2;
+    return sum;
+  }, 0);
+  const score = closeness * 12 + (1 - avgP) * 2.4 + (1 - combinedProbability) * 0.8 + preferredRangePenalty + oddsPenalty - (inTargetWindow ? 0.6 : 0);
   return { picks: picks.slice(), target, totalOdds, combinedProbability, avgP, closeness, score };
 }
 
@@ -793,25 +805,26 @@ function isBetterTicket(candidate, currentBest) {
   return candidate.totalOdds < currentBest.totalOdds;
 }
 
-function buildTicketForTarget(matches, target) {
+function buildTicketForTarget(matches, config) {
+  const target = config.target;
   const optionGroups = matches
     .map((match) => {
       const options = getCandidatesForMatch(match, 0.52)
-        .filter((pick) => Number.isFinite(pick.bookOdds) && pick.bookOdds >= 1.15 && pick.bookOdds <= MAX_TICKET_LEG_ODDS)
+        .filter((pick) => Number.isFinite(pick.bookOdds) && pick.bookOdds >= config.minOdds && pick.bookOdds <= Math.min(config.maxOdds, MAX_TICKET_LEG_ODDS))
         .slice(0, 6);
-      return options.length ? { fixtureId: match.fixtureId, options, rank: options[0].p + Math.max(0, options[0].edge) } : null;
+      return options.length ? { fixtureId: match.fixtureId, options, rank: options[0].p + Math.max(0, options[0].edge) + (options[0].bookOdds / 10) } : null;
     })
     .filter(Boolean)
     .sort((a, b) => b.rank - a.rank)
-    .slice(0, 12);
+    .slice(0, 16);
 
   let best = null;
-  const maxPicks = target >= 20 ? 7 : target >= 10 ? 6 : 5;
-  const minPicks = target >= 20 ? 3 : 2;
+  const maxPicks = config.preferredPicks?.[1] ?? (target >= 20 ? 7 : target >= 10 ? 6 : 5);
+  const minPicks = Math.max(2, (config.preferredPicks?.[0] ?? (target >= 20 ? 3 : 2)) - 1);
 
   function visit(groupIndex, picks, totalOdds) {
     if (picks.length >= minPicks) {
-      const evaluated = evaluateTicket(picks, target);
+      const evaluated = evaluateTicket(picks, config);
       if (isBetterTicket(evaluated, best)) best = evaluated;
     }
     if (groupIndex >= optionGroups.length || picks.length >= maxPicks) return;
@@ -819,7 +832,7 @@ function buildTicketForTarget(matches, target) {
     visit(groupIndex + 1, picks, totalOdds);
     for (const nextPick of optionGroups[groupIndex].options) {
       const nextOdds = totalOdds * nextPick.bookOdds;
-      if (nextOdds > target * 2.7) continue;
+      if (nextOdds > target * 2.2) continue;
       picks.push(nextPick);
       visit(groupIndex + 1, picks, nextOdds);
       picks.pop();
