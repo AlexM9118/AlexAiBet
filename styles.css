@@ -361,8 +361,8 @@ input[type="date"]::-webkit-calendar-picker-indicator{
 .match-list-head{
   display:grid;
   grid-template-columns:minmax(340px,1.4fr) minmax(180px,0.8fr) minmax(320px,1fr);
-  gap:16px;
-  padding:12px 20px 8px;
+  gap:12px;
+  padding:10px 16px 6px;
   color:var(--muted-soft);
   font-size:12px;
   font-weight:800;
@@ -376,17 +376,17 @@ input[type="date"]::-webkit-calendar-picker-indicator{
 .match-feed{
   display:flex;
   flex-direction:column;
-  gap:8px;
-  padding:0 12px 12px;
+  gap:6px;
+  padding:0 10px 10px;
 }
 
 .match-row{
   display:grid;
   grid-template-columns:minmax(340px,1.4fr) minmax(180px,0.8fr) minmax(320px,1fr);
-  gap:12px;
+  gap:10px;
   align-items:center;
-  padding:11px 12px;
-  border-radius:14px;
+  padding:9px 10px;
+  border-radius:12px;
   border:1px solid rgba(255,255,255,0.05);
   background:
     linear-gradient(135deg, rgba(190,36,43,0.09), rgba(10,13,18,0.98)),
@@ -403,12 +403,12 @@ input[type="date"]::-webkit-calendar-picker-indicator{
 .match-main{
   display:flex;
   align-items:center;
-  gap:12px;
+  gap:10px;
   min-width:0;
 }
 
 .match-time{
-  flex:0 0 50px;
+  flex:0 0 46px;
   font-size:12px;
   font-weight:900;
   color:#f4b0b3;
@@ -416,22 +416,6 @@ input[type="date"]::-webkit-calendar-picker-indicator{
 
 .match-clubs{
   min-width:0;
-}
-
-.league-badge{
-  width:32px;
-  height:32px;
-  display:grid;
-  place-items:center;
-  border-radius:50%;
-  border:1px solid rgba(255,255,255,0.08);
-  color:#f5f7fa;
-  font-size:11px;
-  font-weight:900;
-  letter-spacing:0.6px;
-  background:
-    radial-gradient(circle at 30% 30%, hsla(var(--badge-hue, 0), 80%, 70%, 0.95), hsla(var(--badge-hue, 0), 70%, 28%, 0.94));
-  box-shadow:inset 0 0 0 2px rgba(255,255,255,0.06);
 }
 
 .match-name{
@@ -449,10 +433,9 @@ input[type="date"]::-webkit-calendar-picker-indicator{
 .league-chip{
   display:inline-flex;
   align-items:center;
-  gap:10px;
   width:max-content;
   max-width:100%;
-  padding:7px 10px;
+  padding:6px 9px;
   border-radius:999px;
   background:rgba(255,255,255,0.04);
   border:1px solid rgba(255,255,255,0.06);
@@ -465,8 +448,8 @@ input[type="date"]::-webkit-calendar-picker-indicator{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:10px;
-  padding:9px 10px;
+  gap:8px;
+  padding:8px 9px;
   border-radius:12px;
   border:1px solid rgba(22,198,106,0.12);
   background:linear-gradient(180deg, rgba(16,53,33,0.42), rgba(7,24,16,0.28));
@@ -488,14 +471,14 @@ input[type="date"]::-webkit-calendar-picker-indicator{
 }
 
 .reco-meter{
-  margin-top:5px;
+  margin-top:4px;
 }
 
 .reco-meter-bar{
   position:relative;
   display:flex;
   width:100%;
-  height:8px;
+  height:7px;
   overflow:hidden;
   border-radius:999px;
   background:rgba(255,255,255,0.06);
@@ -512,15 +495,15 @@ input[type="date"]::-webkit-calendar-picker-indicator{
 }
 
 .reco-meter-label{
-  margin-top:4px;
+  margin-top:3px;
   color:var(--muted);
-  font-size:11px;
+  font-size:10px;
 }
 
 .reco-odds{
   flex:0 0 auto;
-  min-width:58px;
-  padding:7px 8px;
+  min-width:54px;
+  padding:6px 7px;
   border-radius:10px;
   text-align:center;
   font-size:11px;
@@ -530,11 +513,11 @@ input[type="date"]::-webkit-calendar-picker-indicator{
 }
 
 .reco-empty{
-  padding:11px 12px;
-  border-radius:14px;
+  padding:8px 9px;
+  border-radius:12px;
   border:1px dashed rgba(255,255,255,0.08);
   color:var(--muted);
-  font-size:12px;
+  font-size:11px;
 }
 
 .detail-panel{

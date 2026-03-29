@@ -45,13 +45,27 @@ function escapeHtml(value) {
 
 function fmtClock(iso) {
   if (!iso) return "—";
-  return String(iso).slice(11, 16) || "—";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "—";
+  return new Intl.DateTimeFormat(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+  }).format(date);
 }
 
 function fmtTime(iso) {
   if (!iso) return "—";
-  const d = String(iso).replace(".000Z", "Z");
-  return d.replace("T", " ").replace("Z", " UTC");
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "—";
+  return new Intl.DateTimeFormat(undefined, {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+  }).format(date);
 }
 
 function fmtDayLong(day) {
@@ -438,19 +452,24 @@ function getCandidatesForMatch(match, minProbability = 0.58) {
 }
 
 function buildMatchRecommendation(match) {
-  const preferred = getCandidatesForMatch(match, 0.58)
-    .filter((candidate) => candidate.bookOdds >= MIN_MATCH_RECO_ODDS);
-  if (preferred.length) {
-    return preferred.sort((a, b) => {
-      const aOddsDistance = Math.abs(a.bookOdds - IDEAL_MATCH_RECO_ODDS);
-      const bOddsDistance = Math.abs(b.bookOdds - IDEAL_MATCH_RECO_ODDS);
-      return aOddsDistance - bOddsDistance || (b.p - a.p) || (b.edge - a.edge);
-    })[0];
-  }
+  const candidates = getCandidatesForMatch(match, 0.46)
+    .filter((candidate) => Number.isFinite(candidate.bookOdds) && candidate.bookOdds <= MAX_TICKET_LEG_ODDS + 0.15);
+  if (!candidates.length) return null;
 
-  return getCandidatesForMatch(match, 0.62)
-    .filter((candidate) => candidate.bookOdds >= MIN_MATCH_RECO_ODDS)
-    .sort((a, b) => b.p - a.p || b.edge - a.edge)[0] || null;
+  const scored = candidates
+    .map((candidate) => {
+      const probabilityBoost = candidate.p * 2.6;
+      const edgeBoost = Math.max(0, candidate.edge) * 2.1;
+      const oddsDistancePenalty = Math.abs(candidate.bookOdds - IDEAL_MATCH_RECO_ODDS) * 0.9;
+      const lowOddsPenalty = candidate.bookOdds < MIN_MATCH_RECO_ODDS ? (MIN_MATCH_RECO_ODDS - candidate.bookOdds) * 4.5 : 0;
+      const highOddsPenalty = candidate.bookOdds > 1.55 ? (candidate.bookOdds - 1.55) * 1.4 : 0;
+      const weakProbPenalty = candidate.p < 0.56 ? (0.56 - candidate.p) * 2.4 : 0;
+      const score = probabilityBoost + edgeBoost - oddsDistancePenalty - lowOddsPenalty - highOddsPenalty - weakProbPenalty;
+      return { candidate, score };
+    })
+    .sort((a, b) => b.score - a.score || b.candidate.p - a.candidate.p || b.candidate.edge - a.candidate.edge);
+
+  return scored[0]?.candidate || candidates[0];
 }
 
 function filteredMatches() {
@@ -566,10 +585,7 @@ function renderMatchesList() {
           <div class="match-link">Click pentru analiza completă a meciului</div>
         </div>
       </div>
-      <div class="league-chip">
-        <span class="league-badge" style="--badge-hue:${badgeHue(`${match.categoryName} ${match.tournamentName}`)}">${escapeHtml(monogram(match.tournamentName, 1))}</span>
-        <span>${escapeHtml(match.categoryName)} • ${escapeHtml(match.tournamentName)}</span>
-      </div>
+      <div class="league-chip">${escapeHtml(match.categoryName)} • ${escapeHtml(match.tournamentName)}</div>
       ${
         recommendation ? `
           <div class="reco-pill">
@@ -587,7 +603,7 @@ function renderMatchesList() {
             <div class="reco-odds">${fmtOdds(recommendation.bookOdds)}</div>
           </div>
         ` : `
-          <div class="reco-empty">Meciul rămâne în listă, dar momentan nu are un pariu suficient de puternic pentru a fi recomandat.</div>
+          <div class="reco-empty">Momentan lipsesc suficiente date pentru o recomandare de încredere.</div>
         `
       }
     `;
