@@ -9,22 +9,22 @@
 </head>
 <body>
   <header class="topbar">
-    <div class="brand-lockup">
-      <div class="brand-mark">
-        <span class="brand-shape"></span>
-        <span class="brand-grid"></span>
-        <span class="brand-pulse"></span>
+    <a class="brand-lockup" href="#" aria-label="AlexAIBet home">
+      <div class="brand-mark" aria-hidden="true">
+        <span class="brand-goal"></span>
+        <span class="brand-net"></span>
+        <span class="brand-ball"></span>
+        <span class="brand-arrow"></span>
       </div>
       <div class="brand-copy">
-        <div class="brand-title">AlexAIBet</div>
+        <div class="brand-title"><span>Alex</span><span class="brand-ai">Ai</span><span>Bet</span></div>
         <div class="brand-subtitle">Smart Match Insights</div>
       </div>
-    </div>
+    </a>
 
     <nav class="main-nav" aria-label="Navigație principală">
-      <a class="navlink active" href="#">Astăzi</a>
-      <a class="navlink" href="#analysisFocus">Analize</a>
-      <a class="navlink" href="#appAbout">Despre</a>
+      <button class="navlink active" id="viewMatchesBtn" type="button">Meciuri</button>
+      <button class="navlink" id="viewTicketsBtn" type="button">Bilete</button>
     </nav>
 
     <div class="top-actions">
@@ -35,7 +35,7 @@
   <main class="dashboard">
     <aside class="sidebar-shell">
       <section class="panel sidebar-panel">
-        <div class="section-label">SELECTEAZĂ DATA</div>
+        <div class="section-label">Selectează data</div>
         <div class="day-control">
           <div class="control-shell day-shell">
             <input id="daySel" type="date" />
@@ -45,178 +45,125 @@
 
         <div class="date-helper" id="dayHelper">—</div>
 
-        <div class="section-label section-gap">MECIURILE ZILEI</div>
-        <div id="matchesList" class="matches"></div>
-
-        <div class="section-label section-gap">TIPURI DE ANALIZE</div>
-        <div class="analysis-links">
-          <button class="analysis-link active" type="button">
-            <span class="analysis-link-main"><span>🏆</span><span>Cine câștigă meciul</span></span>
-            <span class="analysis-link-arrow">›</span>
-          </button>
-          <button class="analysis-link" type="button">
-            <span class="analysis-link-main"><span>🟨</span><span>Cartonașe galbene</span></span>
-            <span class="analysis-link-arrow">›</span>
-          </button>
-          <button class="analysis-link" type="button">
-            <span class="analysis-link-main"><span>🚩</span><span>Cornere</span></span>
-            <span class="analysis-link-arrow">›</span>
-          </button>
-          <button class="analysis-link" type="button">
-            <span class="analysis-link-main"><span>⚽</span><span>Total goluri</span></span>
-            <span class="analysis-link-arrow">›</span>
-          </button>
-          <button class="analysis-link" type="button">
-            <span class="analysis-link-main"><span>🎯</span><span>Ambele marchează (BTTS)</span></span>
-            <span class="analysis-link-arrow">›</span>
-          </button>
-          <button class="analysis-link" type="button">
-            <span class="analysis-link-main"><span>🔥</span><span>Peste/Sub în repriza 1</span></span>
-            <span class="analysis-link-arrow">›</span>
-          </button>
-          <button class="analysis-link" type="button">
-            <span class="analysis-link-main"><span>☰</span><span>Toate piețele</span></span>
-            <span class="analysis-link-arrow">›</span>
-          </button>
+        <div class="section-label section-gap">Selectează liga</div>
+        <div class="control-shell">
+          <select id="leagueSel"></select>
         </div>
 
+        <div class="filter-summary" id="filterSummary">Toate meciurile pentru data selectată.</div>
+
         <div class="side-note" id="appAbout">
-          Date bazate pe ultimele 5 meciuri, cote actuale din repo și selecții estimate de modelul SAFE.
+          Recomandările folosesc istoricul recent din repo și aleg cea mai solidă selecție disponibilă pentru fiecare meci.
         </div>
       </section>
     </aside>
 
-    <section class="panel ticket-panel">
-      <div class="ticket-hero">
-        <div class="hero-badge"><span>★</span> BILETE RECOMANDATE</div>
-        <div class="ticket-title" id="recTitle">3 variante calibrate pe cote țintă</div>
-        <div class="ticket-subtitle" id="recSub">—</div>
-        <div class="status hero-status">
-          <span class="dot" id="statusDot"></span>
-          <span id="statusText">Ready</span>
-        </div>
-      </div>
-
-      <div class="ticket-variants" id="ticketVariants"></div>
-
-      <div class="why-card">
-        <div class="why-icon">📈</div>
-        <div class="why-body">
-          <div class="why-title">CUM SUNT CONSTRUITE BILETELE?</div>
-          <p class="why-copy" id="recNote">—</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="panel analysis-panel">
-      <div class="analysis-top">
-        <div>
-          <div class="analysis-title"><span>📊</span> ANALIZE DETALIATE</div>
-          <div class="analysis-subtitle" id="modelNote">—</div>
-        </div>
-        <a class="ghost-btn" id="openBookBtn" href="#" target="_blank" rel="noreferrer">Deschide pe Superbet</a>
-      </div>
-
-      <div class="tabs">
-        <button class="tab" data-tab="goals">⚽ Goluri</button>
-        <button class="tab active" data-tab="cards">🟨 Cartonașe</button>
-        <button class="tab" data-tab="corners">🚩 Cornere</button>
-        <button class="tab" data-tab="btts">🎯 BTTS</button>
-      </div>
-
-      <div class="focus-shell" id="analysisFocus">
-        <div class="focus-header">
-          <div class="focus-title" id="analysisHeadline">Cartonașe galbene - Peste/Sub</div>
-          <div class="focus-legend" id="analysisLegend">
-            <span class="legend-item"><i class="legend-dot positive"></i>Peste</span>
-            <span class="legend-item"><i class="legend-dot negative"></i>Sub</span>
+    <section class="content-shell">
+      <section class="panel content-panel" id="matchesView">
+        <div class="panel-hero">
+          <div class="hero-copy">
+            <div class="hero-kicker">Meciuri</div>
+            <h1 class="hero-title">Toate evenimentele zilei, cu un pariu recomandat pe fiecare meci.</h1>
+            <p class="hero-subtitle" id="matchesSubtitle">—</p>
           </div>
         </div>
 
-        <div class="tabpanels">
-          <div class="tabpanel" id="panel-goals">
-            <div class="panel-copy">Total goluri (1.5 / 2.5 / 3.5 / 4.5)</div>
-            <div id="goalsBox" class="bars"></div>
-          </div>
-
-          <div class="tabpanel active" id="panel-cards">
-            <div class="panel-copy" id="cardsHint">Yellow cards (3.5 / 4.5 / 5.5)</div>
-            <div id="cardsBox" class="bars"></div>
-          </div>
-
-          <div class="tabpanel" id="panel-corners">
-            <div class="panel-copy" id="cornersHint">Corners (8.5 / 9.5 / 10.5)</div>
-            <div id="cornersBox" class="bars"></div>
-          </div>
-
-          <div class="tabpanel" id="panel-btts">
-            <div class="panel-copy">BTTS (Yes / No)</div>
-            <div id="bttsBox" class="bars"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="info-grid">
-        <article class="info-card">
-          <div class="info-card-title">Total Goluri</div>
-          <div class="rows compact-rows" id="goalsQuickRows"></div>
-        </article>
-
-        <article class="info-card">
-          <div class="info-card-title">Cornere</div>
-          <div class="rows compact-rows" id="cornersQuickRows"></div>
-        </article>
-
-        <article class="info-card">
-          <div class="info-card-title">Alte Piețe</div>
-          <div class="rows compact-rows" id="otherMarketRows"></div>
-        </article>
-
-        <article class="info-card confidence-card">
-          <div class="info-card-title">Încredere Ridicată</div>
-          <div class="confidence-score" id="confidenceScore">—</div>
-          <div class="confidence-copy" id="confidenceCopy">—</div>
-          <ul class="confidence-list" id="confidenceList"></ul>
-        </article>
-      </div>
-
-      <div class="match-context">
-        <div class="match-context-head">
-          <div class="match-context-title" id="matchTitle">Alege un meci</div>
-          <div class="match-context-meta" id="matchMeta">—</div>
+        <div class="match-list-head">
+          <div>Meci</div>
+          <div class="head-center">Competiție</div>
+          <div class="head-right">Pariu recomandat</div>
         </div>
 
-        <div class="context-grid">
-          <div class="context-card">
-            <div class="context-label">1X2 (odds)</div>
+        <div class="match-feed" id="matchesList"></div>
+      </section>
+
+      <section class="panel detail-panel" id="detailView" hidden>
+        <div class="detail-topbar">
+          <button class="back-btn" id="backToMatchesBtn" type="button">← Înapoi la meciuri</button>
+          <a class="ghost-btn" id="openBookBtn" href="#" target="_blank" rel="noreferrer">Deschide pe Superbet.ro</a>
+        </div>
+
+        <div class="detail-hero">
+          <div class="hero-kicker">Analiză meci</div>
+          <div class="detail-title" id="matchTitle">Alege un meci</div>
+          <div class="detail-meta" id="matchMeta">—</div>
+        </div>
+
+        <div class="detail-grid">
+          <article class="detail-card detail-card-accent">
+            <div class="detail-card-title">Recomandare principală</div>
+            <div class="primary-pick" id="primaryPick">—</div>
+            <div class="primary-pick-meta" id="primaryPickMeta">—</div>
+            <div class="primary-pick-note" id="primaryPickNote">—</div>
+          </article>
+
+          <article class="detail-card">
+            <div class="detail-card-title">1X2</div>
             <div class="rows compact-rows" id="market1x2"></div>
-          </div>
+          </article>
 
-          <div class="context-card">
-            <div class="context-label">BTTS (odds)</div>
+          <article class="detail-card">
+            <div class="detail-card-title">BTTS</div>
             <div class="rows compact-rows" id="marketBtts"></div>
-          </div>
+          </article>
 
-          <div class="context-card">
-            <div class="context-label">Home (acasă)</div>
+          <article class="detail-card" id="goalsCard">
+            <div class="detail-card-title">Goluri</div>
+            <div class="rows compact-rows" id="goalsQuickRows"></div>
+          </article>
+
+          <article class="detail-card" id="cornersCard">
+            <div class="detail-card-title">Cornere</div>
+            <div class="rows compact-rows" id="cornersQuickRows"></div>
+            <div class="market-footnote" id="cornersHint"></div>
+          </article>
+
+          <article class="detail-card" id="cardsCard">
+            <div class="detail-card-title">Cartonașe</div>
+            <div class="rows compact-rows" id="cardsQuickRows"></div>
+            <div class="market-footnote" id="cardsHint"></div>
+          </article>
+
+          <article class="detail-card">
+            <div class="detail-card-title">Încredere model</div>
+            <div class="confidence-score" id="confidenceScore">—</div>
+            <div class="confidence-copy" id="confidenceCopy">—</div>
+            <ul class="confidence-list" id="confidenceList"></ul>
+          </article>
+
+          <article class="detail-card">
+            <div class="detail-card-title">Formă gazde</div>
             <div class="rows compact-rows" id="histHome"></div>
             <div class="context-note" id="histHomeNote"></div>
-          </div>
+          </article>
 
-          <div class="context-card">
-            <div class="context-label">Away (deplasare)</div>
+          <article class="detail-card">
+            <div class="detail-card-title">Formă oaspeți</div>
             <div class="rows compact-rows" id="histAway"></div>
             <div class="context-note" id="histAwayNote"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel ticket-panel" id="ticketsView" hidden>
+        <div class="ticket-hero">
+          <div class="hero-kicker">Bilete</div>
+          <div class="ticket-title" id="recTitle">3 variante calibrate pe cote țintă</div>
+          <div class="ticket-subtitle" id="recSub">—</div>
+          <div class="status hero-status">
+            <span class="dot" id="statusDot"></span>
+            <span id="statusText">Ready</span>
           </div>
         </div>
-      </div>
 
-      <pre class="other sr-only" id="marketOther">—</pre>
+        <div class="ticket-tabbar" id="ticketTabs"></div>
+        <div class="ticket-viewer" id="ticketViewer"></div>
+      </section>
     </section>
   </main>
 
   <footer class="footer">
-    Cotele sunt orientative și pot varia. Joacă responsabil. Modelul SAFE folosește ultimele 5 meciuri acasă/deplasare și piețe normalizate din repo.
+    Cotele sunt orientative și pot varia. Joacă responsabil. Selecțiile din bilete sunt limitate la cote individuale de maximum 1.60.
   </footer>
 
   <script src="./app.js"></script>
