@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const XLSX = require("xlsx");
+let XLSX = null;
 
 function ensureDir(p){ fs.mkdirSync(p, { recursive: true }); }
 
@@ -56,6 +56,7 @@ function parseCSV(text){
 }
 
 function parseXLSX(buffer){
+  if (!XLSX) XLSX = require("xlsx");
   const wb = XLSX.read(buffer, { type: "buffer" });
 
   // choose first sheet
