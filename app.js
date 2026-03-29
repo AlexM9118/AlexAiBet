@@ -2,8 +2,8 @@ const el = (id) => document.getElementById(id);
 
 const SAFE_THRESHOLD = 0.62;
 const MAX_TICKET_LEG_ODDS = 1.6;
-const MIN_MATCH_RECO_ODDS = 1.2;
-const IDEAL_MATCH_RECO_ODDS = 1.3;
+const MIN_MATCH_RECO_ODDS = 1.22;
+const IDEAL_MATCH_RECO_ODDS = 1.34;
 const GOALS_LINES = [1.5, 2.5, 3.5, 4.5];
 const CORNERS_LINES = [8.5, 9.5, 10.5];
 const CARDS_LINES = [3.5, 4.5, 5.5];
@@ -73,6 +73,10 @@ function pctRounded(x) {
 function pct01(x) {
   if (!Number.isFinite(Number(x))) return "—";
   return `${(Number(x) * 100).toFixed(1)}%`;
+}
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
 }
 
 function fmtNum(x, digits = 2) {
@@ -550,20 +554,16 @@ function renderMatchesList() {
 
   for (const match of list) {
     const recommendation = getMatchRecommendation(match.fixtureId);
+    const successPct = recommendation ? clamp(Math.round(recommendation.p * 100), 0, 100) : 0;
+    const dangerPct = 100 - successPct;
     const row = document.createElement("article");
     row.className = "match-row";
     row.innerHTML = `
       <div class="match-main">
         <div class="match-time">${escapeHtml(fmtClock(match.startTime))}</div>
-        <div class="match-identity">
-          <div class="team-icons">
-            <span class="team-badge" style="--badge-hue:${badgeHue(match.home)}">${escapeHtml(monogram(match.home))}</span>
-            <span class="team-badge" style="--badge-hue:${badgeHue(match.away)}">${escapeHtml(monogram(match.away))}</span>
-          </div>
-          <div class="match-clubs">
-            <div class="match-name">${escapeHtml(match.home)} vs ${escapeHtml(match.away)}</div>
-            <div class="match-link">Click pentru analiza completă a meciului</div>
-          </div>
+        <div class="match-clubs">
+          <div class="match-name">${escapeHtml(match.home)} vs ${escapeHtml(match.away)}</div>
+          <div class="match-link">Click pentru analiza completă a meciului</div>
         </div>
       </div>
       <div class="league-chip">
@@ -576,7 +576,13 @@ function renderMatchesList() {
             <div class="reco-copy">
               <div class="reco-label">Best bet</div>
               <div class="reco-pick">${escapeHtml(recommendation.displayLabel)}</div>
-              <div class="reco-meta">${escapeHtml(pctRounded(recommendation.p))} șansă estimată</div>
+              <div class="reco-meter" aria-label="${escapeHtml(`${successPct}% șansă estimată`)}}">
+                <div class="reco-meter-bar">
+                  <span class="reco-meter-safe" style="width:${successPct}%"></span>
+                  <span class="reco-meter-risk" style="width:${dangerPct}%"></span>
+                </div>
+                <div class="reco-meter-label">${escapeHtml(`${successPct}% șansă estimată`)}</div>
+              </div>
             </div>
             <div class="reco-odds">${fmtOdds(recommendation.bookOdds)}</div>
           </div>
