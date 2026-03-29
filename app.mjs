@@ -25,6 +25,17 @@ let UI = { index: null, leagues: [], matches: [], matchByFixtureId: new Map(), m
 let HIST = null;
 let current = { day: null, leagueId: "all", fixtureId: null, ticketKey: "safe", view: "matches" };
 
+function nowLocal() {
+  return new Date();
+}
+
+function isFutureMatch(startTime) {
+  if (!startTime) return false;
+  const kickoff = new Date(startTime);
+  if (Number.isNaN(kickoff.getTime())) return false;
+  return kickoff.getTime() >= nowLocal().getTime();
+}
+
 function setStatus(text, ok = true) {
   const statusText = el("statusText");
   const statusDot = el("statusDot");
@@ -51,7 +62,7 @@ function getMatchRecommendation(fixtureId) {
 function pickDefaultDay(days) {
   const list = Array.from(new Set(days || [])).sort();
   if (!list.length) return null;
-  const today = new Date().toISOString().slice(0, 10);
+  const today = nowLocal().toLocaleDateString("en-CA");
   return list.includes(today) ? today : list.find((day) => day >= today) || list[0];
 }
 
@@ -99,18 +110,20 @@ async function loadAll() {
   const matchesObj = await getJson("./data/ui/matches.json");
   HIST = await getJson("./data/ui/history_stats.json");
 
-  UI.matches = (matchesObj.matches || []).map((match) => ({
-    fixtureId: String(match.fixtureId),
-    tournamentId: match.tournamentId != null ? String(match.tournamentId) : null,
-    tournamentName: match.tournamentName || "",
-    categoryName: match.categoryName || "",
-    startTime: match.startTime,
-    day: match.day,
-    home: match.home || "?",
-    away: match.away || "?",
-    featuredMarkets: match.featuredMarkets || {},
-    selectionIndex: match.selectionIndex || {}
-  }));
+  UI.matches = (matchesObj.matches || [])
+    .map((match) => ({
+      fixtureId: String(match.fixtureId),
+      tournamentId: match.tournamentId != null ? String(match.tournamentId) : null,
+      tournamentName: match.tournamentName || "",
+      categoryName: match.categoryName || "",
+      startTime: match.startTime,
+      day: match.day,
+      home: match.home || "?",
+      away: match.away || "?",
+      featuredMarkets: match.featuredMarkets || {},
+      selectionIndex: match.selectionIndex || {}
+    }))
+    .filter((match) => isFutureMatch(match.startTime));
 
   UI.leagues = [
     { id: "all", name: "Toate ligile", categoryName: "" },
@@ -135,7 +148,7 @@ async function loadAll() {
 
 function renderDaySel() {
   const input = el("daySel");
-  const days = Array.from(new Set(UI.index.days || [])).sort();
+  const days = Array.from(new Set(UI.matches.map((match) => match.day).filter(Boolean))).sort();
   input.min = days[0] || "";
   input.max = days[days.length - 1] || "";
   if (!days.includes(current.day)) current.day = pickDefaultDay(days);
@@ -482,6 +495,16 @@ async function init() {
       renderMatchesList();
       renderTicketVariants(current.day);
       goBackToMatches();
+    });
+
+    el("dayShell").addEventListener("click", () => {
+      const input = el("daySel");
+      if (typeof input.showPicker === "function") {
+        input.showPicker();
+      } else {
+        input.focus();
+        input.click();
+      }
     });
 
     el("leagueSel").addEventListener("change", async () => {
