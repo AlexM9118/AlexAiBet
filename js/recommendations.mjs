@@ -329,7 +329,10 @@ export function buildMatchRecommendation(match, getHistEntry) {
   const candidates = historyCandidates.length ? historyCandidates : fallbackCandidatesFromOdds(match);
   if (!candidates.length) return null;
 
-  const scored = candidates
+  const preferredCandidates = candidates.filter((candidate) => candidate.bookOdds >= MIN_MATCH_RECO_ODDS);
+  const scoringPool = preferredCandidates.length ? preferredCandidates : candidates;
+
+  const scored = scoringPool
     .map((candidate) => {
       const profile = getMarketProfile(candidate);
       const probabilityBoost = candidate.p * profile.probWeight;
@@ -345,7 +348,7 @@ export function buildMatchRecommendation(match, getHistEntry) {
     })
     .sort((a, b) => b.score - a.score || b.candidate.p - a.candidate.p || b.candidate.edge - a.candidate.edge);
 
-  const best = scored[0]?.candidate || candidates[0];
+  const best = scored[0]?.candidate || scoringPool[0] || candidates[0];
   if (!best) return null;
   best.confidence = getRecommendationConfidence(best);
   return best;
