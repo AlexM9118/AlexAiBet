@@ -751,7 +751,6 @@ function renderTicketVariants(day) {
   }
 
   const risk = getRiskProfile(ticket.avgP);
-  const firstLink = ticket.picks.find((pick) => pick.fixturePath)?.fixturePath || "#";
   const picksMarkup = ticket.picks.map((pick) => `
     <div class="ticket-pick">
       <div class="ticket-pick-main">
@@ -794,13 +793,7 @@ function renderTicketVariants(day) {
     </div>
 
     <div class="ticket-picks">${picksMarkup}</div>
-
-    <a class="ticket-cta ${firstLink === "#" ? "disabled" : ""}" href="${escapeHtml(firstLink)}" target="_blank" rel="noreferrer">
-      <span>Deschide primul meci din bilet</span>
-      <strong>${fmtOdds(ticket.totalOdds)}</strong>
-      <span class="ticket-cta-arrow">→</span>
-    </a>
-    <div class="ticket-cta-note">${firstLink === "#" ? "Nu există momentan link bookmaker pentru selecțiile acestui bilet." : "Linkul folosește domeniul Superbet.ro și deschide primul eveniment disponibil din combinație."}</div>
+    <div class="ticket-cta-note">Biletul este afișat informativ, pe baza cotelor și selecțiilor disponibile în sursa de date curentă.</div>
   `;
   viewer.appendChild(article);
 }
@@ -970,10 +963,6 @@ async function loadAndRenderMatch() {
 
   el("matchTitle").textContent = `${fixture.home || summary?.home || "?"} vs ${fixture.away || summary?.away || "?"}`;
   el("matchMeta").textContent = `${fixture.categoryName || summary?.categoryName || "—"} • ${fixture.tournamentName || summary?.tournamentName || "—"} • ${fmtTime(fixture.startTime || summary?.startTime)}`;
-
-  const href = normalizeBookmakerUrl(fixture.fixturePath || summary?.fixturePath || "#");
-  el("openBookBtn").href = href;
-  el("openBookBtn").style.opacity = href === "#" ? "0.5" : "1";
 
   renderPrimaryPick(summary, recommendation);
   renderRows("market1x2", rowsFromFeaturedMarket(featuredMarkets.ft1x2, "ft1x2"));
