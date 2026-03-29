@@ -185,7 +185,6 @@ button, select, input{ font:inherit; }
 }
 
 .iconbtn,
-.ghost-btn,
 .back-btn{
   border:1px solid rgba(255,255,255,0.08);
   background:rgba(255,255,255,0.03);
@@ -200,7 +199,6 @@ button, select, input{ font:inherit; }
   font-size:18px;
 }
 
-.ghost-btn,
 .back-btn{
   padding:11px 14px;
   text-decoration:none;
@@ -208,7 +206,6 @@ button, select, input{ font:inherit; }
 }
 
 .iconbtn:hover,
-.ghost-btn:hover,
 .back-btn:hover{
   border-color:rgba(255,255,255,0.18);
   background:rgba(255,255,255,0.06);
@@ -901,23 +898,6 @@ input[type="date"]::-webkit-calendar-picker-indicator{
   background:linear-gradient(180deg, rgba(22,198,106,0.3), rgba(11,95,52,0.78));
 }
 
-.ticket-cta{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:12px;
-  padding:15px 16px;
-  border-radius:16px;
-  text-decoration:none;
-  font-weight:900;
-  letter-spacing:0.3px;
-  background:linear-gradient(180deg, rgba(190,36,43,0.88), rgba(108,14,20,0.9));
-  box-shadow:0 12px 32px rgba(190,36,43,0.18);
-}
-
-.ticket-cta strong{ font-size:22px; }
-.ticket-cta-arrow{ font-size:22px; }
-
 .ticket-cta-note,
 .ticket-empty{
   color:var(--muted-soft);
@@ -929,11 +909,6 @@ input[type="date"]::-webkit-calendar-picker-indicator{
   padding:16px;
   border-radius:16px;
   border:1px dashed rgba(255,255,255,0.08);
-}
-
-.ticket-cta.disabled{
-  pointer-events:none;
-  opacity:0.68;
 }
 
 .footer{
