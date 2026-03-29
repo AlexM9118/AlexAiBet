@@ -17,6 +17,7 @@ import {
   buildTwoWayRows,
   buildConfidenceModel,
   getRiskProfile,
+  getRecommendationConfidence,
   buildDisplayedTickets,
   TICKET_CONFIGS
 } from "./js/recommendations.mjs";
@@ -195,6 +196,7 @@ function renderMatchesList() {
 
   for (const match of list) {
     const recommendation = getMatchRecommendation(match.fixtureId);
+    const confidence = recommendation?.confidence || getRecommendationConfidence(recommendation);
     const successPct = recommendation ? clamp(Math.round(recommendation.p * 100), 0, 100) : 0;
     const dangerPct = 100 - successPct;
     const row = document.createElement("article");
@@ -212,7 +214,7 @@ function renderMatchesList() {
         recommendation ? `
           <div class="reco-pill">
             <div class="reco-copy">
-              <div class="reco-label">Best bet</div>
+              <div class="reco-label">Best bet • ${escapeHtml(confidence.label)}</div>
               <div class="reco-pick">${escapeHtml(recommendation.displayLabel)}</div>
               <div class="reco-meter" aria-label="${escapeHtml(`${successPct}% sansa estimata`)}}">
                 <div class="reco-meter-bar">
@@ -280,8 +282,9 @@ function renderPrimaryPick(match, recommendation) {
     el("primaryPickNote").textContent = "Poti verifica 1X2 si BTTS sau reveni la lista principala pentru alte meciuri.";
     return;
   }
+  const confidence = recommendation.confidence || getRecommendationConfidence(recommendation);
   el("primaryPick").textContent = recommendation.displayLabel;
-  el("primaryPickMeta").textContent = `${fmtOdds(recommendation.bookOdds)} cota • ${pctRounded(recommendation.p)} sansa estimata`;
+  el("primaryPickMeta").textContent = `${fmtOdds(recommendation.bookOdds)} cota • ${pctRounded(recommendation.p)} sansa estimata • Incredere ${confidence.label}`;
   el("primaryPickNote").textContent = recommendation.reason || `${match.home} vs ${match.away}`;
 }
 

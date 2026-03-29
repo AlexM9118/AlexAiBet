@@ -96,6 +96,75 @@ function buildCandidate(match, market, sel, probability) {
   };
 }
 
+function getMarketProfile(candidate) {
+  if (candidate.market === "1X2") {
+    return {
+      category: "1X2",
+      minProb: 0.61,
+      minOdds: 1.28,
+      idealOdds: 1.42,
+      probWeight: 2.9,
+      edgeWeight: 1.7,
+      lowOddsPenalty: 5.2,
+      highOddsPenalty: 1.6,
+      weakProbPenalty: 3.2,
+      baseBonus: -0.08
+    };
+  }
+  if (candidate.market === "BTTS" || String(candidate.market).startsWith("Goals ")) {
+    return {
+      category: "GOALS",
+      minProb: 0.58,
+      minOdds: 1.24,
+      idealOdds: 1.34,
+      probWeight: 2.7,
+      edgeWeight: 2.2,
+      lowOddsPenalty: 4.4,
+      highOddsPenalty: 1.2,
+      weakProbPenalty: 2.4,
+      baseBonus: 0.1
+    };
+  }
+  if (String(candidate.market).startsWith("Corners ")) {
+    return {
+      category: "CORNERS",
+      minProb: 0.57,
+      minOdds: 1.28,
+      idealOdds: 1.4,
+      probWeight: 2.35,
+      edgeWeight: 2.65,
+      lowOddsPenalty: 3.8,
+      highOddsPenalty: 1.15,
+      weakProbPenalty: 2.1,
+      baseBonus: 0.05
+    };
+  }
+  return {
+    category: "CARDS",
+    minProb: 0.56,
+    minOdds: 1.3,
+    idealOdds: 1.42,
+    probWeight: 2.25,
+    edgeWeight: 2.7,
+    lowOddsPenalty: 3.6,
+    highOddsPenalty: 1.05,
+    weakProbPenalty: 1.95,
+    baseBonus: 0.04
+  };
+}
+
+export function getRecommendationConfidence(candidate) {
+  if (!candidate) return { label: "Redusa", tone: "muted" };
+  const strongOdds = candidate.bookOdds >= 1.24 && candidate.bookOdds <= 1.48;
+  if (candidate.p >= 0.72 && strongOdds && candidate.edge >= 0.04) {
+    return { label: "Ridicata", tone: "high" };
+  }
+  if (candidate.p >= 0.64 && candidate.edge >= 0.02) {
+    return { label: "Buna", tone: "medium" };
+  }
+  return { label: "Moderata", tone: "low" };
+}
+
 export function getCandidatesForMatch(match, getHistEntry, minProbability = 0.58) {
   const entry = getHistEntry(match.fixtureId);
   const candidates = [];
@@ -171,18 +240,24 @@ export function buildMatchRecommendation(match, getHistEntry) {
 
   const scored = candidates
     .map((candidate) => {
-      const probabilityBoost = candidate.p * 2.6;
-      const edgeBoost = Math.max(0, candidate.edge) * 2.1;
-      const oddsDistancePenalty = Math.abs(candidate.bookOdds - IDEAL_MATCH_RECO_ODDS) * 0.9;
-      const lowOddsPenalty = candidate.bookOdds < MIN_MATCH_RECO_ODDS ? (MIN_MATCH_RECO_ODDS - candidate.bookOdds) * 4.5 : 0;
-      const highOddsPenalty = candidate.bookOdds > 1.55 ? (candidate.bookOdds - 1.55) * 1.4 : 0;
-      const weakProbPenalty = candidate.p < 0.56 ? (0.56 - candidate.p) * 2.4 : 0;
-      const score = probabilityBoost + edgeBoost - oddsDistancePenalty - lowOddsPenalty - highOddsPenalty - weakProbPenalty;
-      return { candidate, score };
+      const profile = getMarketProfile(candidate);
+      const probabilityBoost = candidate.p * profile.probWeight;
+      const edgeBoost = Math.max(0, candidate.edge) * profile.edgeWeight * 10;
+      const oddsDistancePenalty = Math.abs(candidate.bookOdds - profile.idealOdds) * 1.05;
+      const lowOddsPenalty = candidate.bookOdds < profile.minOdds ? (profile.minOdds - candidate.bookOdds) * profile.lowOddsPenalty : 0;
+      const highOddsPenalty = candidate.bookOdds > 1.55 ? (candidate.bookOdds - 1.55) * profile.highOddsPenalty : 0;
+      const weakProbPenalty = candidate.p < profile.minProb ? (profile.minProb - candidate.p) * profile.weakProbPenalty * 4 : 0;
+      const genericLowOddsPenalty = candidate.bookOdds < MIN_MATCH_RECO_ODDS ? (MIN_MATCH_RECO_ODDS - candidate.bookOdds) * 1.8 : 0;
+      const genericOddsDistance = Math.abs(candidate.bookOdds - IDEAL_MATCH_RECO_ODDS) * 0.35;
+      const score = profile.baseBonus + probabilityBoost + edgeBoost - oddsDistancePenalty - lowOddsPenalty - highOddsPenalty - weakProbPenalty - genericLowOddsPenalty - genericOddsDistance;
+      return { candidate, score, profile };
     })
     .sort((a, b) => b.score - a.score || b.candidate.p - a.candidate.p || b.candidate.edge - a.candidate.edge);
 
-  return scored[0]?.candidate || candidates[0];
+  const best = scored[0]?.candidate || candidates[0];
+  if (!best) return null;
+  best.confidence = getRecommendationConfidence(best);
+  return best;
 }
 
 export function buildTwoWayRows(lines, lambdaTotal, noun) {
