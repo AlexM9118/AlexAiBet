@@ -1,4 +1,6 @@
 :root{
+  --font-ui:"Segoe UI Variable","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --font-display:"Trebuchet MS","Segoe UI Variable","Segoe UI",sans-serif;
   --bg: #0b0f1a;
   --panel:#141a2b;
   --panel2:#101628;
@@ -15,7 +17,11 @@ body{
   margin:0;
   background: radial-gradient(1200px 600px at 15% -10%, #18234a 0%, var(--bg) 60%);
   color:var(--text);
-  font-family: Inter, Arial, sans-serif;
+  font-family:var(--font-ui);
+  line-height:1.45;
+  text-rendering:optimizeLegibility;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
 }
 
 .topbar{
@@ -31,7 +37,12 @@ body{
   z-index: 10;
 }
 
-.brand .title{ font-weight:800; letter-spacing:0.3px; font-size:18px; }
+.brand .title{
+  font-family:var(--font-display);
+  font-weight:900;
+  letter-spacing:0.3px;
+  font-size:18px;
+}
 .brand .subtitle{ color:var(--muted); font-size:12px; margin-top:3px; }
 
 .controls{
@@ -49,6 +60,7 @@ body{
 }
 
 select{
+  font:inherit;
   min-width:180px;
   padding:10px 10px;
   border-radius:10px;
