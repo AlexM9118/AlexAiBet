@@ -2,13 +2,15 @@ const el = (id) => document.getElementById(id);
 
 const SAFE_THRESHOLD = 0.62;
 const MAX_TICKET_LEG_ODDS = 1.6;
+const MIN_MATCH_RECO_ODDS = 1.2;
+const IDEAL_MATCH_RECO_ODDS = 1.3;
 const GOALS_LINES = [1.5, 2.5, 3.5, 4.5];
 const CORNERS_LINES = [8.5, 9.5, 10.5];
 const CARDS_LINES = [3.5, 4.5, 5.5];
 const TICKET_CONFIGS = [
-  { key: "safe", target: 5, name: "Safe 5", desc: "Combinație echilibrată pentru o cotă în jur de 5.", minOdds: 1.15, maxOdds: 1.38, preferredPicks: [4, 5] },
-  { key: "value", target: 10, name: "Value 10", desc: "Variantă intermediară, cu randament mai bun și risc controlat.", minOdds: 1.22, maxOdds: 1.5, preferredPicks: [5, 6] },
-  { key: "boost", target: 20, name: "Boost 20", desc: "Variantă extinsă, pentru cotă mare fără selecții forțate.", minOdds: 1.28, maxOdds: 1.6, preferredPicks: [6, 7] }
+  { key: "safe", target: 5, name: "Cota 5", desc: "Variantă compactă, construită pentru o cotă finală în jur de 5.", minOdds: 1.15, maxOdds: 1.38, preferredPicks: [4, 5] },
+  { key: "value", target: 10, name: "Cota 10", desc: "Variantă intermediară, cu selecții ceva mai sus ca preț și cotă finală în jur de 10.", minOdds: 1.22, maxOdds: 1.5, preferredPicks: [5, 6] },
+  { key: "boost", target: 20, name: "Cota 20", desc: "Variantă extinsă, pentru cotă mare fără selecții forțate.", minOdds: 1.28, maxOdds: 1.6, preferredPicks: [6, 7] }
 ];
 
 let UI = { index: null, leagues: [], matches: [], matchByFixtureId: new Map(), matchRecommendations: new Map() };
@@ -432,9 +434,19 @@ function getCandidatesForMatch(match, minProbability = 0.58) {
 }
 
 function buildMatchRecommendation(match) {
-  const candidates = getCandidatesForMatch(match, 0.58);
-  if (candidates.length) return candidates[0];
-  return getCandidatesForMatch(match, 0.5)[0] || null;
+  const preferred = getCandidatesForMatch(match, 0.58)
+    .filter((candidate) => candidate.bookOdds >= MIN_MATCH_RECO_ODDS);
+  if (preferred.length) {
+    return preferred.sort((a, b) => {
+      const aOddsDistance = Math.abs(a.bookOdds - IDEAL_MATCH_RECO_ODDS);
+      const bOddsDistance = Math.abs(b.bookOdds - IDEAL_MATCH_RECO_ODDS);
+      return aOddsDistance - bOddsDistance || (b.p - a.p) || (b.edge - a.edge);
+    })[0];
+  }
+
+  return getCandidatesForMatch(match, 0.62)
+    .filter((candidate) => candidate.bookOdds >= MIN_MATCH_RECO_ODDS)
+    .sort((a, b) => b.p - a.p || b.edge - a.edge)[0] || null;
 }
 
 function filteredMatches() {
@@ -673,9 +685,8 @@ function renderTicketVariants(day) {
     return;
   }
 
-  const renderedTickets = new Map();
+  const renderedTickets = buildDisplayedTickets(matches);
   for (const config of TICKET_CONFIGS) {
-    renderedTickets.set(config.key, buildTicketForTarget(matches, config));
     const button = document.createElement("button");
     button.className = "ticket-pill";
     button.type = "button";
@@ -805,12 +816,16 @@ function isBetterTicket(candidate, currentBest) {
   return candidate.totalOdds < currentBest.totalOdds;
 }
 
-function buildTicketForTarget(matches, config) {
+function buildTicketForTarget(matches, config, exclusions = {}) {
   const target = config.target;
+  const excludedFixtureIds = exclusions.excludedFixtureIds || new Set();
+  const excludedSelectionKeys = exclusions.excludedSelectionKeys || new Set();
   const optionGroups = matches
     .map((match) => {
+      if (excludedFixtureIds.has(String(match.fixtureId))) return null;
       const options = getCandidatesForMatch(match, 0.52)
         .filter((pick) => Number.isFinite(pick.bookOdds) && pick.bookOdds >= config.minOdds && pick.bookOdds <= Math.min(config.maxOdds, MAX_TICKET_LEG_ODDS))
+        .filter((pick) => !excludedSelectionKeys.has(`${pick.fixtureId}|${pick.market}|${pick.sel}`))
         .slice(0, 6);
       return options.length ? { fixtureId: match.fixtureId, options, rank: options[0].p + Math.max(0, options[0].edge) + (options[0].bookOdds / 10) } : null;
     })
@@ -841,6 +856,27 @@ function buildTicketForTarget(matches, config) {
 
   visit(0, [], 1);
   return best;
+}
+
+function buildDisplayedTickets(matches) {
+  const renderedTickets = new Map();
+  const usedFixtureIds = new Set();
+  const usedSelectionKeys = new Set();
+
+  for (const config of TICKET_CONFIGS) {
+    let ticket = buildTicketForTarget(matches, config, { excludedFixtureIds: usedFixtureIds, excludedSelectionKeys: usedSelectionKeys });
+    if (!ticket) {
+      ticket = buildTicketForTarget(matches, config);
+    }
+    renderedTickets.set(config.key, ticket);
+    if (!ticket) continue;
+    for (const pick of ticket.picks) {
+      usedFixtureIds.add(String(pick.fixtureId));
+      usedSelectionKeys.add(`${pick.fixtureId}|${pick.market}|${pick.sel}`);
+    }
+  }
+
+  return renderedTickets;
 }
 
 function renderConfidence(entry) {
