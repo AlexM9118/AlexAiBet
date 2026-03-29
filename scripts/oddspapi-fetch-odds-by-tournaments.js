@@ -28,6 +28,14 @@ function parseIds(s){
     .filter(Boolean);
 }
 
+function loadIdsFromConfig(){
+  const cfgPath = path.join("scripts", "oddspapi-tournament-ids.json");
+  if (!fs.existsSync(cfgPath)) return [];
+  const cfg = JSON.parse(fs.readFileSync(cfgPath, "utf8"));
+  if (!Array.isArray(cfg.tournamentIds)) return [];
+  return cfg.tournamentIds.map((id) => String(id).trim()).filter(Boolean);
+}
+
 async function main(){
   const key = process.env.ODDSPAPI_KEY;
   if (!key) throw new Error("Missing ODDSPAPI_KEY");
@@ -36,8 +44,9 @@ async function main(){
   const oddsFormat = process.env.ODDS_FORMAT || "decimal";
   const verbosity = process.env.VERBOSITY || "1";
 
-  const idsRaw = process.env.TOURNAMENT_IDS || "17";
-  const ids = Array.from(new Set(parseIds(idsRaw))); // dedupe
+  const envIds = parseIds(process.env.TOURNAMENT_IDS || "");
+  const cfgIds = loadIdsFromConfig();
+  const ids = Array.from(new Set(envIds.length ? envIds : cfgIds));
 
   if (!ids.length) throw new Error("No tournamentIds provided.");
 
