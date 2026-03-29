@@ -40,7 +40,7 @@ body{
 }
 
 a{ color:inherit; }
-button, select{ font:inherit; }
+button, select, input{ font:inherit; }
 
 .sr-only{
   position:absolute;
@@ -264,7 +264,8 @@ button, select{ font:inherit; }
   overflow:hidden;
 }
 
-select{
+select,
+input[type="date"]{
   width:100%;
   appearance:none;
   border:none;
@@ -274,6 +275,16 @@ select{
     linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0)),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5 7.5L10 12.5L15 7.5' stroke='%23A1A7B2' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 14px center;
   padding:15px 42px 15px 16px;
+}
+
+input[type="date"]{
+  color-scheme:dark;
+  min-height:52px;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator{
+  opacity:0.85;
+  cursor:pointer;
 }
 
 .day-control{
@@ -295,6 +306,12 @@ select{
   color:var(--muted);
 }
 
+.date-helper{
+  margin-top:-4px;
+  color:var(--muted);
+  font-size:13px;
+}
+
 .matches{
   display:flex;
   flex-direction:column;
@@ -303,9 +320,9 @@ select{
 
 .match-item{
   display:grid;
-  grid-template-columns:52px minmax(0,1fr) 20px;
+  grid-template-columns:52px minmax(0,1fr);
   gap:12px;
-  align-items:center;
+  align-items:start;
   padding:14px 14px 14px 12px;
   border-radius:18px;
   border:1px solid rgba(255,255,255,0.06);
@@ -320,9 +337,9 @@ select{
 }
 
 .match-item.active{
-  border-color:rgba(255,76,84,0.55);
-  background:linear-gradient(180deg, rgba(190,36,43,0.22), rgba(43,12,18,0.55));
-  box-shadow:inset 0 0 0 1px rgba(255,76,84,0.15);
+  border-color:rgba(22,198,106,0.34);
+  background:linear-gradient(180deg, rgba(20,92,57,0.28), rgba(7,26,16,0.48));
+  box-shadow:inset 0 0 0 1px rgba(22,198,106,0.12);
 }
 
 .match-time{
@@ -334,7 +351,7 @@ select{
 .match-body{
   display:flex;
   flex-direction:column;
-  gap:9px;
+  gap:10px;
   min-width:0;
 }
 
@@ -362,9 +379,65 @@ select{
 }
 
 .club-mark.alt{ color:#d3e3ff; }
-.match-arrow{
+.match-meta{
   color:var(--muted-soft);
-  font-size:20px;
+  font-size:12px;
+}
+
+.match-reco{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  padding:11px 12px;
+  border-radius:14px;
+  border:1px solid rgba(22,198,106,0.12);
+  background:linear-gradient(180deg, rgba(16,53,33,0.4), rgba(7,24,16,0.24));
+}
+
+.match-reco-copy{
+  min-width:0;
+}
+
+.match-reco-label{
+  font-size:12px;
+  letter-spacing:0.8px;
+  text-transform:uppercase;
+  color:#8fe4b5;
+}
+
+.match-reco-pick{
+  margin-top:5px;
+  font-size:14px;
+  font-weight:800;
+  color:#f2f5f8;
+}
+
+.match-reco-note{
+  margin-top:4px;
+  font-size:12px;
+  color:var(--muted);
+}
+
+.match-reco-odds{
+  flex:0 0 auto;
+  min-width:70px;
+  padding:10px 9px;
+  border-radius:12px;
+  text-align:center;
+  font-size:13px;
+  font-weight:900;
+  color:#dff8ea;
+  background:linear-gradient(180deg, rgba(22,198,106,0.3), rgba(11,95,52,0.78));
+  box-shadow:inset 0 0 0 1px rgba(22,198,106,0.18);
+}
+
+.match-reco-empty{
+  padding:11px 12px;
+  border-radius:14px;
+  border:1px dashed rgba(255,255,255,0.08);
+  color:var(--muted);
+  font-size:12px;
 }
 
 .analysis-links{
@@ -473,133 +546,203 @@ select{
   box-shadow:0 0 16px rgba(22,198,106,0.48);
 }
 
-.ticket-list{
+.ticket-variants{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
+  gap:14px;
+  padding:18px;
+}
+
+.ticket-card{
   display:flex;
   flex-direction:column;
-  gap:10px;
-  padding:18px 18px 0;
-}
-
-.pick{
-  display:grid;
-  grid-template-columns:42px minmax(0,1.15fr) minmax(180px,0.95fr) 74px;
   gap:14px;
-  align-items:center;
-  padding:16px 18px;
+  padding:18px;
   border-radius:18px;
-  background:linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.005));
-  border-bottom:1px solid rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.05);
+  background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
 }
 
-.pick-index{
-  width:36px;
-  height:36px;
-  display:grid;
-  place-items:center;
-  border-radius:50%;
-  border:1px solid rgba(255,255,255,0.08);
-  background:rgba(255,255,255,0.03);
+.ticket-card[data-tone="safe"]{
+  border-color:rgba(22,198,106,0.18);
+  box-shadow:inset 0 0 0 1px rgba(22,198,106,0.08);
+}
+
+.ticket-card[data-tone="value"]{
+  border-color:rgba(244,193,75,0.18);
+  box-shadow:inset 0 0 0 1px rgba(244,193,75,0.08);
+}
+
+.ticket-card[data-tone="boost"]{
+  border-color:rgba(190,36,43,0.18);
+  box-shadow:inset 0 0 0 1px rgba(190,36,43,0.08);
+}
+
+.ticket-card-head{
+  display:flex;
+  justify-content:space-between;
+  gap:16px;
+  align-items:flex-start;
+}
+
+.ticket-card-copy{
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+}
+
+.ticket-kicker{
+  font-size:12px;
   font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:1px;
   color:var(--muted);
 }
 
-.pick-clubs{
-  display:flex;
-  align-items:center;
-  gap:14px;
-  min-width:0;
-}
-
-.club-stack{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-}
-
-.pick-title{
-  font-size:16px;
+.ticket-name{
+  font-size:18px;
   font-weight:900;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
 }
 
-.pick-title span{ color:var(--muted); font-weight:700; }
-
-.pick-meta{
-  margin-top:5px;
+.ticket-desc{
   color:var(--muted);
   font-size:13px;
 }
 
-.pick-selection{ min-width:0; }
-.pick-selection-title{
-  font-size:15px;
-  font-weight:800;
-  color:#f8efe1;
+.ticket-target{
+  padding:10px 12px;
+  border-radius:14px;
+  background:rgba(255,255,255,0.04);
+  text-align:right;
 }
 
-.pick-selection-copy{
-  margin-top:6px;
-  color:var(--muted);
-  font-size:12px;
-  line-height:1.5;
+.ticket-target-label{
+  display:block;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:0.9px;
+  color:var(--muted-soft);
 }
 
-.pick-price{
-  justify-self:end;
-  min-width:68px;
-  padding:12px 10px;
-  border-radius:12px;
-  text-align:center;
+.ticket-target-value{
+  display:block;
+  margin-top:4px;
+  font-size:24px;
   font-weight:900;
-  color:#dff8ea;
-  background:linear-gradient(180deg, rgba(22,198,106,0.3), rgba(11,95,52,0.78));
-  box-shadow:inset 0 0 0 1px rgba(22,198,106,0.18);
 }
 
 .ticket-stats{
   display:grid;
   grid-template-columns:repeat(3, minmax(0,1fr));
-  gap:12px;
-  padding:18px;
+  gap:10px;
 }
 
 .ticket-stat{
-  min-height:130px;
-  padding:18px;
-  border-radius:18px;
+  min-height:auto;
+  padding:12px;
+  border-radius:14px;
   border:1px solid rgba(255,255,255,0.05);
-  background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+  background:rgba(255,255,255,0.025);
 }
 
-.total-stat{
+.ticket-stat.total-stat{
   background:linear-gradient(180deg, rgba(190,36,43,0.18), rgba(56,12,18,0.46));
   border-color:rgba(190,36,43,0.24);
 }
 
 .stat-label{
   color:#d0b9bb;
-  font-size:13px;
+  font-size:11px;
   letter-spacing:1px;
   text-transform:uppercase;
 }
 
 .stat-value{
-  margin-top:10px;
-  font-size:26px;
+  margin-top:8px;
+  font-size:22px;
   font-weight:900;
 }
 
-#recRisk[data-risk="low"]{ color:#64e39b; }
-#recRisk[data-risk="medium"]{ color:#f4c14b; }
-#recRisk[data-risk="high"]{ color:#ff7d83; }
-
 .stat-copy{
-  margin-top:10px;
+  margin-top:8px;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.5;
+}
+
+.ticket-picks{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.ticket-pick{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:12px;
+  align-items:center;
+  padding:12px 14px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,0.05);
+  background:rgba(255,255,255,0.02);
+}
+
+.ticket-pick-main{
+  min-width:0;
+}
+
+.ticket-pick-match{
+  font-size:14px;
+  font-weight:800;
+}
+
+.ticket-pick-bet{
+  margin-top:4px;
+  color:var(--muted);
+  font-size:12px;
+}
+
+.ticket-pick-odds{
+  min-width:64px;
+  padding:9px 10px;
+  border-radius:12px;
+  text-align:center;
+  font-size:13px;
+  font-weight:900;
+  color:#dff8ea;
+  background:linear-gradient(180deg, rgba(22,198,106,0.3), rgba(11,95,52,0.78));
+}
+
+.ticket-cta{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  padding:15px 16px;
+  border-radius:16px;
+  text-decoration:none;
+  font-weight:900;
+  letter-spacing:0.3px;
+  background:linear-gradient(180deg, rgba(190,36,43,0.88), rgba(108,14,20,0.9));
+  box-shadow:0 12px 32px rgba(190,36,43,0.18);
+}
+
+.ticket-cta strong{ font-size:22px; }
+.ticket-cta-arrow{ font-size:22px; }
+
+.ticket-cta-note{
+  color:var(--muted-soft);
+  font-size:12px;
+  text-align:center;
+}
+
+.ticket-empty{
+  padding:16px;
+  border-radius:16px;
+  border:1px dashed rgba(255,255,255,0.08);
   color:var(--muted);
   font-size:13px;
-  line-height:1.5;
+  line-height:1.6;
 }
 
 .why-card{
@@ -632,84 +775,9 @@ select{
   line-height:1.7;
 }
 
-.ticket-cta{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:12px;
-  margin:14px 18px 0;
-  padding:18px 20px;
-  border-radius:16px;
-  text-decoration:none;
-  font-weight:900;
-  letter-spacing:0.4px;
-  background:linear-gradient(180deg, rgba(190,36,43,0.88), rgba(108,14,20,0.9));
-  box-shadow:0 12px 32px rgba(190,36,43,0.18);
-}
-
-.ticket-cta strong{ font-size:28px; }
-.ticket-cta-arrow{ font-size:24px; }
 .ticket-cta.disabled{
   pointer-events:none;
   opacity:0.68;
-}
-
-.ticket-cta-note{
-  padding:12px 24px 0;
-  color:var(--muted-soft);
-  font-size:12px;
-  text-align:center;
-}
-
-.slip-grid{
-  display:grid;
-  grid-template-columns:repeat(4, minmax(0,1fr));
-  gap:12px;
-  padding:18px;
-}
-
-.slip-card{
-  padding:16px 14px;
-  border-radius:18px;
-  border:1px solid rgba(255,255,255,0.05);
-  background:rgba(255,255,255,0.02);
-}
-
-.slip-order{
-  width:28px;
-  height:28px;
-  display:grid;
-  place-items:center;
-  border-radius:50%;
-  background:rgba(255,255,255,0.04);
-  color:var(--muted);
-  font-size:12px;
-  font-weight:900;
-}
-
-.slip-match{
-  margin-top:16px;
-  font-weight:900;
-  letter-spacing:0.5px;
-}
-
-.slip-match span{ color:var(--muted); }
-.slip-copy{
-  margin-top:12px;
-  min-height:36px;
-  color:#d9dde4;
-  font-size:13px;
-  line-height:1.5;
-}
-
-.slip-odds{
-  display:inline-flex;
-  margin-top:14px;
-  padding:6px 10px;
-  border-radius:10px;
-  background:rgba(22,198,106,0.14);
-  color:#9af0c1;
-  font-weight:900;
 }
 
 .analysis-panel{
@@ -1108,24 +1176,9 @@ select{
   }
 
   .ticket-stats,
-  .slip-grid,
   .info-grid,
   .context-grid{
     grid-template-columns:1fr;
-  }
-
-  .pick{
-    grid-template-columns:42px minmax(0,1fr);
-  }
-
-  .pick-selection,
-  .pick-price{
-    grid-column:2;
-  }
-
-  .pick-price{
-    justify-self:start;
-    margin-top:4px;
   }
 
   .hero-status{
@@ -1142,10 +1195,7 @@ select{
   .sidebar-panel,
   .match-context,
   .focus-shell{ padding-left:16px; padding-right:16px; }
-  .ticket-list,
   .ticket-stats,
-  .slip-grid{ padding-left:14px; padding-right:14px; }
+  .ticket-variants{ padding-left:14px; padding-right:14px; }
   .why-card{ margin-left:14px; margin-right:14px; }
-  .ticket-cta,
-  .ticket-cta-note{ margin-left:14px; margin-right:14px; padding-left:14px; padding-right:14px; }
 }

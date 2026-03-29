@@ -297,9 +297,9 @@ function estCards(entry){
 }
 
 /* UI state */
-let UI = { index:null, leagues:[], matches:[], matchByFixtureId:new Map() };
+let UI = { index:null, matches:[], matchByFixtureId:new Map(), matchRecommendations:new Map() };
 let HIST = null;
-let current = { leagueId:null, day:null, fixtureId:null };
+let current = { day:null, fixtureId:null };
 
 function getHistEntry(fixtureId){
   return HIST?.byFixtureId?.[String(fixtureId)] || null;
@@ -309,18 +309,85 @@ function getMatchSummary(fixtureId) {
   return UI.matchByFixtureId.get(String(fixtureId)) || null;
 }
 
+function getMatchRecommendation(fixtureId) {
+  return UI.matchRecommendations.get(String(fixtureId)) || null;
+}
+
+function pickDefaultDay(days) {
+  const list = Array.from(new Set(days || [])).sort();
+  if (!list.length) return null;
+  const today = new Date().toISOString().slice(0, 10);
+  return list.includes(today) ? today : list.find((day) => day >= today) || list[0];
+}
+
+function getBookSelection(match, market, sel) {
+  if (!match?.selectionIndex) return null;
+  return match.selectionIndex[buildSelectionKeyFromPick({ market, sel })] || null;
+}
+
+function buildCandidate(match, market, sel, probability) {
+  const bookSelection = getBookSelection(match, market, sel);
+  const bookOdds = Number(bookSelection?.price);
+  if (!Number.isFinite(bookOdds) || bookOdds <= 1) return null;
+
+  return {
+    fixtureId: String(match.fixtureId),
+    match: `${match.home} vs ${match.away}`,
+    home: match.home,
+    away: match.away,
+    market,
+    sel,
+    p: Number(probability),
+    bookOdds,
+    fairOdds: oddsFromProb(probability),
+    edge: Number(probability) - (1 / bookOdds),
+    fixturePath: match.fixturePath || null,
+    startTime: match.startTime,
+    tournamentName: match.tournamentName || "",
+    categoryName: match.categoryName || "",
+    displayLabel: pickDisplayLabel({ market, sel }),
+    reason: pickReasonText({ market, sel })
+  };
+}
+
+function getCandidatesForMatch(match, minProbability = 0.58) {
+  const entry = getHistEntry(match.fixtureId);
+  if (!entry) return [];
+
+  const candidates = [];
+  const goals = estGoals(entry);
+  if (goals) {
+    const pYes = probBTTS(goals.lh, goals.la);
+    const pNo = 1 - pYes;
+    candidates.push(buildCandidate(match, "BTTS", pYes >= pNo ? "YES" : "NO", Math.max(pYes, pNo)));
+
+    for (const line of GOALS_LINES) {
+      const pOver = probTotalOver(line, goals.lt);
+      const pUnder = 1 - pOver;
+      candidates.push(buildCandidate(match, `Goals ${line}`, pOver >= pUnder ? "OVER" : "UNDER", Math.max(pOver, pUnder)));
+    }
+  }
+
+  return candidates
+    .filter(Boolean)
+    .filter((candidate) => candidate.p >= minProbability)
+    .sort((a, b) => (
+      (b.p - a.p) ||
+      (b.edge - a.edge) ||
+      (a.bookOdds - b.bookOdds)
+    ));
+}
+
+function buildMatchRecommendation(match) {
+  const [best] = getCandidatesForMatch(match, 0.58);
+  return best || null;
+}
+
 async function loadAll(){
   setStatus("Loading...");
   UI.index = await getJson("./data/ui/index.json");
-  const leaguesObj = await getJson("./data/ui/leagues.json");
   const matchesObj = await getJson("./data/ui/matches.json");
   HIST = await getJson("./data/ui/history_stats.json");
-
-  UI.leagues = (leaguesObj.leagues || []).map(l => ({
-    id: String(l.id),
-    name: l.name || l.id,
-    categoryName: l.categoryName || ""
-  }));
 
   UI.matches = (matchesObj.matches || []).map(m => ({
     fixtureId: String(m.fixtureId),
@@ -336,44 +403,32 @@ async function loadAll(){
     selectionIndex: m.selectionIndex || {}
   }));
   UI.matchByFixtureId = new Map(UI.matches.map((m) => [String(m.fixtureId), m]));
+  UI.matchRecommendations = new Map(UI.matches.map((match) => [String(match.fixtureId), buildMatchRecommendation(match)]));
 
-  current.leagueId = UI.leagues[0]?.id || null;
-  current.day = UI.index.days?.[0] || null;
+  current.day = pickDefaultDay(UI.index.days) || UI.matches[0]?.day || null;
 
   setStatus("Ready");
 }
 
-function renderLeagueSel(){
-  const sel = el("leagueSel");
-  sel.innerHTML = "";
-  const list = UI.leagues.slice().sort((a,b)=>(a.categoryName+a.name).localeCompare(b.categoryName+b.name));
-  for (const l of list){
-    const opt = document.createElement("option");
-    opt.value = l.id;
-    opt.textContent = l.categoryName ? `${l.categoryName} - ${l.name}` : l.name;
-    sel.appendChild(opt);
-  }
-  sel.value = current.leagueId || list[0]?.id;
-}
-
 function renderDaySel(){
-  const sel = el("daySel");
-  sel.innerHTML = "";
-  for (const d of (UI.index.days || [])){
-    const opt = document.createElement("option");
-    opt.value = d;
-    opt.textContent = fmtDayShort(d);
-    sel.appendChild(opt);
+  const input = el("daySel");
+  const sortedDays = Array.from(new Set(UI.index.days || [])).sort();
+  input.min = sortedDays[0] || "";
+  input.max = sortedDays[sortedDays.length - 1] || "";
+  if (!sortedDays.includes(current.day)) {
+    current.day = pickDefaultDay(sortedDays);
   }
-  sel.value = current.day || UI.index.days?.[0];
+  input.value = current.day || "";
 }
 
 function filteredMatches(){
-  return UI.matches.filter(m => {
-    if (current.leagueId && String(m.tournamentId) !== String(current.leagueId)) return false;
-    if (current.day && String(m.day) !== String(current.day)) return false;
-    return true;
-  });
+  return UI.matches
+    .filter((m) => !current.day || String(m.day) === String(current.day))
+    .sort((a, b) => (
+      String(a.startTime || "").localeCompare(String(b.startTime || "")) ||
+      String(a.tournamentName || "").localeCompare(String(b.tournamentName || "")) ||
+      String(a.home || "").localeCompare(String(b.home || ""))
+    ));
 }
 
 function renderMatchesList(){
@@ -381,13 +436,22 @@ function renderMatchesList(){
   box.innerHTML = "";
   const list = filteredMatches();
   el("dayMatchCount").textContent = String(list.length);
+  el("dayHelper").textContent = list.length
+    ? `${fmtDayLong(current.day)} • ${list.length} meciuri disponibile`
+    : `${fmtDayLong(current.day)} • fără meciuri disponibile`;
 
   if (!list.length){
-    box.innerHTML = `<div class="muted">Nu există meciuri pentru filtrele selectate.</div>`;
+    current.fixtureId = null;
+    box.innerHTML = `<div class="muted">Nu există meciuri pentru data selectată.</div>`;
     return;
   }
 
+  if (!list.some((match) => match.fixtureId === current.fixtureId)) {
+    current.fixtureId = list[0]?.fixtureId || null;
+  }
+
   for (const m of list){
+    const recommendation = getMatchRecommendation(m.fixtureId);
     const div = document.createElement("div");
     div.className = "match-item" + (m.fixtureId === current.fixtureId ? " active":"");
     div.innerHTML = `
@@ -401,8 +465,20 @@ function renderMatchesList(){
           <span class="club-mark alt">${escapeHtml(teamMonogram(m.away))}</span>
           <span>${escapeHtml(m.away)}</span>
         </div>
+        <div class="match-meta">${escapeHtml(m.categoryName)} • ${escapeHtml(m.tournamentName)}</div>
+        ${recommendation ? `
+          <div class="match-reco">
+            <div class="match-reco-copy">
+              <div class="match-reco-label">Recomandare safe</div>
+              <div class="match-reco-pick">${escapeHtml(recommendation.displayLabel)}</div>
+              <div class="match-reco-note">${escapeHtml(pctRounded(recommendation.p))} șansă estimată • bazat pe ultimele ${HIST?.lookback || 5} meciuri</div>
+            </div>
+            <div class="match-reco-odds">${fmtOdds(recommendation.bookOdds)}</div>
+          </div>
+        ` : `
+          <div class="match-reco-empty">Nu există încă o selecție suficient de solidă pentru acest meci.</div>
+        `}
       </div>
-      <div class="match-arrow">›</div>
     `;
     div.addEventListener("click", async () => {
       current.fixtureId = m.fixtureId;
@@ -412,9 +488,6 @@ function renderMatchesList(){
     box.appendChild(div);
   }
 
-  if (!current.fixtureId && list[0]?.fixtureId){
-    current.fixtureId = list[0].fixtureId;
-  }
 }
 
 function setTabs(){
@@ -659,189 +732,210 @@ function renderMatchInsightCards(entry, featuredMarkets) {
   }
 }
 
-async function renderRecommendation(day){
-  const recTitle = el("recTitle");
-  const recSub = el("recSub");
-  const recList = el("recList");
-  const recSlip = el("recSlip");
+function evaluateTicket(picks, target) {
+  if (!picks.length) return null;
+  const totalOdds = picks.reduce((product, pick) => product * pick.bookOdds, 1);
+  const combinedProbability = picks.reduce((product, pick) => product * pick.p, 1);
+  const avgP = picks.reduce((sum, pick) => sum + pick.p, 0) / picks.length;
+  const closeness = Math.abs(totalOdds - target) / target;
+  const inTargetWindow = totalOdds >= target * 0.82 && totalOdds <= target * 1.18;
+  const score = closeness * 8 + (1 - avgP) * 2.2 + (1 - combinedProbability) * 0.6 + picks.length * 0.04 - (inTargetWindow ? 0.35 : 0);
 
-  recTitle.textContent = "Bilet combinat din 4 meciuri";
-  recSub.textContent = fmtDayLong(day);
-  recList.innerHTML = "";
-  recSlip.innerHTML = "";
+  return {
+    picks: picks.slice(),
+    target,
+    totalOdds,
+    combinedProbability,
+    avgP,
+    closeness,
+    score
+  };
+}
 
-  const list = UI.matches.filter(m => String(m.day) === String(day));
-  const picks = [];
+function isBetterTicket(candidate, currentBest) {
+  if (!candidate) return false;
+  if (!currentBest) return true;
+  if (candidate.score !== currentBest.score) return candidate.score < currentBest.score;
+  if (candidate.combinedProbability !== currentBest.combinedProbability) return candidate.combinedProbability > currentBest.combinedProbability;
+  if (candidate.avgP !== currentBest.avgP) return candidate.avgP > currentBest.avgP;
+  return candidate.totalOdds < currentBest.totalOdds;
+}
 
-  for (const m of list){
-    const entry = getHistEntry(m.fixtureId);
-    const goals = estGoals(entry);
-    if (!goals) continue;
+function buildTicketForTarget(matches, target) {
+  const optionGroups = matches
+    .map((match) => {
+      const options = getCandidatesForMatch(match, 0.52)
+        .filter((pick) => Number.isFinite(pick.bookOdds) && pick.bookOdds >= 1.15 && pick.bookOdds <= 7)
+        .slice(0, 6);
+      return options.length ? { fixtureId: match.fixtureId, options, rank: options[0].p + Math.max(0, options[0].edge) } : null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.rank - a.rank)
+    .slice(0, 12);
 
-    let bestPick = null;
+  let best = null;
+  const maxPicks = target >= 20 ? 7 : target >= 10 ? 6 : 5;
+  const minPicks = target >= 20 ? 3 : target >= 10 ? 2 : 2;
 
-    const pYes = probBTTS(goals.lh, goals.la);
-    const pNo = 1 - pYes;
-    const best = Math.max(pYes, pNo);
-    if (best >= SAFE_THRESHOLD){
-      bestPick = {
-        fixtureId: m.fixtureId,
-        match: `${m.home} vs ${m.away}`,
-        market: "BTTS",
-        sel: (pYes>=pNo) ? "YES" : "NO",
-        p: best
-      };
+  function visit(groupIndex, picks, totalOdds) {
+    if (picks.length >= minPicks) {
+      const evaluated = evaluateTicket(picks, target);
+      if (isBetterTicket(evaluated, best)) best = evaluated;
     }
 
-    for (const L of GOALS_LINES){
-      const pOver = probTotalOver(L, goals.lt);
-      const pUnder = 1 - pOver;
-      const best2 = Math.max(pOver, pUnder);
-      if (best2 >= SAFE_THRESHOLD && (!bestPick || best2 > bestPick.p)){
-        bestPick = {
-          fixtureId: m.fixtureId,
-          match: `${m.home} vs ${m.away}`,
-          market: `Goals ${L}`,
-          sel: (pOver>=pUnder) ? "OVER" : "UNDER",
-          p: best2
-        };
-      }
-    }
+    if (groupIndex >= optionGroups.length || picks.length >= maxPicks) return;
 
-    if (bestPick) {
-      picks.push(bestPick);
+    visit(groupIndex + 1, picks, totalOdds);
+
+    for (const nextPick of optionGroups[groupIndex].options) {
+      const nextOdds = totalOdds * nextPick.bookOdds;
+      if (nextOdds > target * 2.7) continue;
+      picks.push(nextPick);
+      visit(groupIndex + 1, picks, nextOdds);
+      picks.pop();
     }
   }
 
-  picks.sort((a,b)=>b.p-a.p);
-  const top = picks.slice(0, 4);
+  visit(0, [], 1);
+  return best;
+}
 
-  el("recCount").textContent = String(top.length);
+function renderTicketVariants(day) {
+  const box = el("ticketVariants");
+  box.innerHTML = "";
 
-  if (!top.length){
-    recTitle.textContent = "Nicio combinație SAFE";
-    recSub.textContent = `${fmtDayLong(day)} • încearcă altă zi`;
-    el("recAvgP").textContent = "—";
-    el("recFairOdds").textContent = "—";
-    el("recBookOdds").textContent = "—";
-    el("recRisk").textContent = "—";
-    el("recRiskNote").textContent = "Nu există suficiente selecții SAFE.";
-    el("recProbNote").textContent = "Rată de succes estimată";
-    el("recTotalSub").textContent = "Nicio combinație disponibilă";
-    el("recNote").textContent = "Nu există suficiente selecții solide pentru a construi un bilet echilibrat în această zi.";
-    el("ticketCtaOdds").textContent = "—";
-    el("ticketCta").href = "#";
-    el("ticketCta").classList.add("disabled");
-    el("ticketCtaNote").textContent = "Cotele sunt orientative și pot varia până la plasarea biletului.";
+  const matches = filteredMatches();
+  const recommendations = matches
+    .map((match) => getMatchRecommendation(match.fixtureId))
+    .filter(Boolean);
+
+  el("recSub").textContent = `${fmtDayLong(day)} • ${recommendations.length} selecții safe disponibile`;
+  el("recNote").textContent = recommendations.length
+    ? "Fiecare bilet este construit din cele mai bune piețe disponibile pe meci, pe baza istoricului recent. Motorul încearcă să ajungă cât mai aproape de cota țintă, iar în zilele cu puține partide afișează cea mai apropiată combinație solidă disponibilă."
+    : "Nu există suficiente meciuri cu suport statistic bun pentru a construi bilete sigure în ziua selectată.";
+
+  if (!recommendations.length) {
+    box.innerHTML = `<div class="ticket-empty">Nu există suficiente recomandări sigure pentru data selectată. Alege altă zi pentru a genera bilete de cotă 5, 10 și 20.</div>`;
     return;
   }
 
-  recTitle.textContent = `Bilet combinat din ${top.length} meciuri`;
-  recSub.textContent = `${fmtDayLong(day)} • prag SAFE ${pctRounded(SAFE_THRESHOLD)}`;
+  const ticketConfigs = [
+    { key: "safe", target: 5, name: "Safe 5", desc: "Combinație echilibrată pentru o cotă în jur de 5." },
+    { key: "value", target: 10, name: "Value 10", desc: "Variantă intermediară, cu randament mai bun și risc controlat." },
+    { key: "boost", target: 20, name: "Boost 20", desc: "Variantă extinsă, pentru cotă mare fără selecții forțate." }
+  ];
 
-  const avgP = top.reduce((s,x)=>s+x.p,0) / top.length;
-  el("recAvgP").textContent = pct01(avgP);
+  for (const config of ticketConfigs) {
+    const ticket = buildTicketForTarget(matches, config.target);
+    const risk = ticket ? getRiskProfile(ticket.avgP) : null;
+    const firstLink = ticket?.picks.find((pick) => pick.fixturePath)?.fixturePath || "#";
 
-  // fair combined odds = product(1/p)
-  let fair = 1;
-  for (const x of top) fair *= oddsFromProb(x.p);
-  el("recFairOdds").textContent = fmtOdds(fair);
+    const article = document.createElement("article");
+    article.className = "ticket-card";
+    article.dataset.tone = config.key;
 
-  let bookCombined = 1;
-  let mappedCount = 0;
-  let allMapped = true;
-  let firstLink = null;
-  const detailedTop = [];
-
-  for (const p of top){
-    const matchSummary = getMatchSummary(p.fixtureId);
-    const link = matchSummary?.fixturePath || null;
-    const bookmakerPick = matchSummary?.selectionIndex?.[buildSelectionKeyFromPick(p)] || null;
-    const bookOdds = bookmakerPick?.price ?? null;
-    const entry = getHistEntry(p.fixtureId);
-
-    if (Number.isFinite(Number(bookOdds))) {
-      bookCombined *= Number(bookOdds);
-      mappedCount += 1;
-    } else {
-      allMapped = false;
+    if (!ticket) {
+      article.innerHTML = `
+        <div class="ticket-card-head">
+          <div class="ticket-card-copy">
+            <div class="ticket-kicker">Bilet țintă</div>
+            <div class="ticket-name">${escapeHtml(config.name)}</div>
+            <div class="ticket-desc">${escapeHtml(config.desc)}</div>
+          </div>
+          <div class="ticket-target">
+            <span class="ticket-target-label">Țintă</span>
+            <span class="ticket-target-value">${fmtOdds(config.target)}</span>
+          </div>
+        </div>
+        <div class="ticket-empty">Nu am găsit încă o combinație suficient de sigură pentru această țintă de cotă în ziua aleasă.</div>
+      `;
+      box.appendChild(article);
+      continue;
     }
 
-    detailedTop.push({
-      ...p,
-      link,
-      bookOdds,
-      entry,
-      matchSummary,
-      displayLabel: pickDisplayLabel(p),
-      reason: pickReasonText(p)
-    });
-    if (!firstLink && link) firstLink = link;
-  }
-
-  const displayTotal = allMapped && mappedCount === top.length ? bookCombined : fair;
-  const risk = getRiskProfile(avgP);
-
-  el("recBookOdds").textContent = fmtOdds(displayTotal);
-  el("recTotalSub").textContent = allMapped && mappedCount === top.length
-    ? `Cotă Superbet pentru ${top.length} selecții`
-    : `Fallback pe cota fair: ${fmtOdds(fair)}`;
-  el("recRisk").textContent = risk.label;
-  el("recRisk").dataset.risk = risk.tone;
-  el("recRiskNote").textContent = risk.note;
-  el("recProbNote").textContent = "Rată de succes estimată";
-  el("recNote").textContent = allMapped && mappedCount === top.length
-    ? "Am selectat piețe cu risc controlat și cotă reală disponibilă în Superbet, bazate pe modelul de goluri și statisticile recente."
-    : "Am selectat piețe cu suport statistic bun. Unde nu a fost disponibil mapping-ul bookmaker, am păstrat referința fair din model.";
-  el("ticketCtaOdds").textContent = fmtOdds(displayTotal);
-  el("ticketCta").href = firstLink || "#";
-  el("ticketCta").classList.toggle("disabled", !firstLink);
-  el("ticketCtaNote").textContent = firstLink
-    ? `Adaugă cele ${top.length} selecții pe bilet. Linkul deschide primul meci disponibil în sursa actuală.`
-    : "Nu există momentan un link bookmaker direct pentru acest bilet.";
-
-  for (const [index, pick] of detailedTop.entries()) {
-    const matchSummary = pick.matchSummary || {};
-    const home = matchSummary.home || pick.match.split(" vs ")[0] || "?";
-    const away = matchSummary.away || pick.match.split(" vs ")[1] || "?";
-    const competition = matchSummary.tournamentName || "Liga selectată";
-
-    const div = document.createElement("div");
-    div.className = "pick";
-    div.innerHTML = `
-      <div class="pick-index">${index + 1}</div>
-      <div class="pick-clubs">
-        <div class="club-stack">
-          <span class="club-mark">${escapeHtml(teamMonogram(home))}</span>
-          <span class="club-mark alt">${escapeHtml(teamMonogram(away))}</span>
+    const picksMarkup = ticket.picks.map((pick) => `
+      <div class="ticket-pick">
+        <div class="ticket-pick-main">
+          <div class="ticket-pick-match">${escapeHtml(pick.home)} vs ${escapeHtml(pick.away)}</div>
+          <div class="ticket-pick-bet">${escapeHtml(pick.displayLabel)} • ${escapeHtml(pctRounded(pick.p))} estimat</div>
         </div>
-        <div>
-          <div class="pick-title">${escapeHtml(home)} <span>vs</span> ${escapeHtml(away)}</div>
-          <div class="pick-meta">${escapeHtml(competition)} • ${escapeHtml(fmtClock(matchSummary.startTime))}</div>
+        <div class="ticket-pick-odds">${fmtOdds(pick.bookOdds)}</div>
+      </div>
+    `).join("");
+
+    article.innerHTML = `
+      <div class="ticket-card-head">
+        <div class="ticket-card-copy">
+          <div class="ticket-kicker">Bilet țintă</div>
+          <div class="ticket-name">${escapeHtml(config.name)}</div>
+          <div class="ticket-desc">${escapeHtml(config.desc)}</div>
+        </div>
+        <div class="ticket-target">
+          <span class="ticket-target-label">Țintă / obținut</span>
+          <span class="ticket-target-value">${fmtOdds(ticket.totalOdds)}</span>
         </div>
       </div>
-      <div class="pick-selection">
-        <div class="pick-selection-title">${escapeHtml(pick.displayLabel)}</div>
-        <div class="pick-selection-copy">${escapeHtml(pick.reason)}</div>
-      </div>
-      <div class="pick-price">${fmtOdds(pick.bookOdds ?? oddsFromProb(pick.p))}</div>
-    `;
-    recList.appendChild(div);
 
-    const slip = document.createElement("div");
-    slip.className = "slip-card";
-    slip.innerHTML = `
-      <div class="slip-order">${index + 1}</div>
-      <div class="slip-match">${escapeHtml(teamMonogram(home))} <span>vs</span> ${escapeHtml(teamMonogram(away))}</div>
-      <div class="slip-copy">${escapeHtml(pick.displayLabel)}</div>
-      <div class="slip-odds">${fmtOdds(pick.bookOdds ?? oddsFromProb(pick.p))}</div>
+      <div class="ticket-stats">
+        <article class="ticket-stat total-stat">
+          <div class="stat-label">Țintă</div>
+          <div class="stat-value">${fmtOdds(config.target)}</div>
+          <div class="stat-copy">Apropiere ${pctRounded(Math.max(0, 1 - ticket.closeness))}</div>
+        </article>
+        <article class="ticket-stat">
+          <div class="stat-label">Prob. medie</div>
+          <div class="stat-value">${pctRounded(ticket.avgP)}</div>
+          <div class="stat-copy">${escapeHtml(risk?.label || "—")} • ${ticket.picks.length} selecții</div>
+        </article>
+        <article class="ticket-stat">
+          <div class="stat-label">Prob. bilet</div>
+          <div class="stat-value">${pctRounded(ticket.combinedProbability)}</div>
+          <div class="stat-copy">${escapeHtml(risk?.note || "Profil calculat din istoricul recent")}</div>
+        </article>
+      </div>
+
+      <div class="ticket-picks">${picksMarkup}</div>
+
+      <a class="ticket-cta ${firstLink === "#" ? "disabled" : ""}" href="${escapeHtml(firstLink)}" target="_blank" rel="noreferrer">
+        <span>DESCHIDE PRIMUL MECI DIN BILET</span>
+        <strong>${fmtOdds(ticket.totalOdds)}</strong>
+        <span class="ticket-cta-arrow">→</span>
+      </a>
+      <div class="ticket-cta-note">${firstLink === "#" ? "Nu există momentan link bookmaker pentru selecțiile acestui bilet." : "Cotele sunt orientative. Linkul deschide primul eveniment disponibil din combinație."}</div>
     `;
-    recSlip.appendChild(slip);
+    box.appendChild(article);
   }
 }
 
+function renderEmptyMatchState(message = "Alege un meci") {
+  el("matchTitle").textContent = message;
+  el("matchMeta").textContent = "—";
+  el("openBookBtn").href = "#";
+  el("openBookBtn").style.opacity = "0.5";
+  renderRows("market1x2", []);
+  renderRows("marketBtts", []);
+  renderRows("goalsQuickRows", []);
+  renderRows("cornersQuickRows", []);
+  renderRows("otherMarketRows", []);
+  renderRows("histHome", []);
+  renderRows("histAway", []);
+  el("histHomeNote").textContent = "—";
+  el("histAwayNote").textContent = "—";
+  el("confidenceScore").textContent = "—";
+  el("confidenceCopy").textContent = "Selectează un meci pentru detalii.";
+  el("confidenceList").innerHTML = "";
+  el("modelNote").textContent = "—";
+  el("goalsBox").innerHTML = `<div class="muted small">Selectează un meci pentru modelul de goluri.</div>`;
+  el("bttsBox").innerHTML = `<div class="muted small">Selectează un meci pentru BTTS.</div>`;
+  el("cornersBox").innerHTML = `<div class="muted small">Selectează un meci pentru modelul de cornere.</div>`;
+  el("cardsBox").innerHTML = `<div class="muted small">Selectează un meci pentru modelul de cartonașe.</div>`;
+}
+
 async function loadAndRenderMatch(){
-  if (!current.fixtureId) return;
+  if (!current.fixtureId) {
+    renderEmptyMatchState("Nu există meci selectat");
+    return;
+  }
 
   const m = getMatchSummary(current.fixtureId);
   const fx = await getJson(`./data/ui/match/${current.fixtureId}.json`);
@@ -907,52 +1001,29 @@ async function init(){
   try{
     await loadAll();
 
-    renderLeagueSel();
     renderDaySel();
     setTabs();
 
-    // initial list
+    renderMatchesList();
     renderMatchesList();
 
-    // pick first match
-    const list = filteredMatches();
-    if (!current.fixtureId && list[0]?.fixtureId) current.fixtureId = list[0].fixtureId;
-    renderMatchesList();
-
-    await renderRecommendation(current.day);
+    renderTicketVariants(current.day);
     await loadAndRenderMatch();
-
-    el("leagueSel").addEventListener("change", async () => {
-      current.leagueId = el("leagueSel").value;
-      current.fixtureId = null;
-      renderMatchesList();
-      const list2 = filteredMatches();
-      if (list2[0]?.fixtureId) current.fixtureId = list2[0].fixtureId;
-      renderMatchesList();
-      await loadAndRenderMatch();
-    });
 
     el("daySel").addEventListener("change", async () => {
       current.day = el("daySel").value;
-      current.fixtureId = null;
       renderMatchesList();
-      const list2 = filteredMatches();
-      if (list2[0]?.fixtureId) current.fixtureId = list2[0].fixtureId;
-      renderMatchesList();
-      await renderRecommendation(current.day);
+      renderTicketVariants(current.day);
       await loadAndRenderMatch();
     });
 
     el("refreshBtn").addEventListener("click", async () => {
       current.fixtureId = null;
       await loadAll();
-      renderLeagueSel();
       renderDaySel();
       renderMatchesList();
-      const list2 = filteredMatches();
-      if (list2[0]?.fixtureId) current.fixtureId = list2[0].fixtureId;
       renderMatchesList();
-      await renderRecommendation(current.day);
+      renderTicketVariants(current.day);
       await loadAndRenderMatch();
     });
 

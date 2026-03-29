@@ -35,19 +35,17 @@
   <main class="dashboard">
     <aside class="sidebar-shell">
       <section class="panel sidebar-panel">
-        <div class="section-label">SELECTEAZĂ LIGA</div>
-        <div class="control-shell">
-          <select id="leagueSel"></select>
-        </div>
-
-        <div class="section-label section-gap">MECIURI DIN LIGĂ</div>
+        <div class="section-label">SELECTEAZĂ DATA</div>
         <div class="day-control">
           <div class="control-shell day-shell">
-            <select id="daySel"></select>
+            <input id="daySel" type="date" />
           </div>
           <div class="day-count" id="dayMatchCount">0</div>
         </div>
 
+        <div class="date-helper" id="dayHelper">—</div>
+
+        <div class="section-label section-gap">MECIURILE ZILEI</div>
         <div id="matchesList" class="matches"></div>
 
         <div class="section-label section-gap">TIPURI DE ANALIZE</div>
@@ -90,8 +88,8 @@
 
     <section class="panel ticket-panel">
       <div class="ticket-hero">
-        <div class="hero-badge"><span>★</span> RECOMANDAREA ZILEI</div>
-        <div class="ticket-title" id="recTitle">—</div>
+        <div class="hero-badge"><span>★</span> BILETE RECOMANDATE</div>
+        <div class="ticket-title" id="recTitle">3 variante calibrate pe cote țintă</div>
         <div class="ticket-subtitle" id="recSub">—</div>
         <div class="status hero-status">
           <span class="dot" id="statusDot"></span>
@@ -99,48 +97,14 @@
         </div>
       </div>
 
-      <div class="ticket-list" id="recList"></div>
-
-      <div class="ticket-stats">
-        <article class="ticket-stat total-stat">
-          <div class="stat-label">Cota totală</div>
-          <div class="stat-value" id="recBookOdds">—</div>
-          <div class="stat-copy" id="recTotalSub">—</div>
-        </article>
-
-        <article class="ticket-stat">
-          <div class="stat-label">Risc</div>
-          <div class="stat-value" id="recRisk">—</div>
-          <div class="stat-copy" id="recRiskNote">—</div>
-        </article>
-
-        <article class="ticket-stat">
-          <div class="stat-label">Probabilitate</div>
-          <div class="stat-value" id="recAvgP">—</div>
-          <div class="stat-copy" id="recProbNote">—</div>
-        </article>
-      </div>
+      <div class="ticket-variants" id="ticketVariants"></div>
 
       <div class="why-card">
         <div class="why-icon">📈</div>
         <div class="why-body">
-          <div class="why-title">DE CE ACEASTĂ COTĂ?</div>
+          <div class="why-title">CUM SUNT CONSTRUITE BILETELE?</div>
           <p class="why-copy" id="recNote">—</p>
         </div>
-      </div>
-
-      <a class="ticket-cta" id="ticketCta" href="#" target="_blank" rel="noreferrer">
-        <span>PARIAZĂ BILETUL LA COTA</span>
-        <strong id="ticketCtaOdds">—</strong>
-        <span class="ticket-cta-arrow">→</span>
-      </a>
-      <div class="ticket-cta-note" id="ticketCtaNote">Cotele sunt orientative și pot varia până la plasarea biletului.</div>
-
-      <div class="slip-grid" id="recSlip"></div>
-
-      <div class="sr-only" aria-hidden="true">
-        <span id="recCount">—</span>
-        <span id="recFairOdds">—</span>
       </div>
     </section>
 
