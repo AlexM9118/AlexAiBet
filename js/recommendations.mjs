@@ -92,8 +92,42 @@ function buildCandidate(match, market, sel, probability) {
     tournamentName: match.tournamentName || "",
     categoryName: match.categoryName || "",
     displayLabel: pickDisplayLabel({ market, sel }),
-    reason: pickReasonText({ market, sel })
+    reason: pickReasonText({ market, sel }),
+    source: "history"
   };
+}
+
+function buildFallbackCandidate(match, market, sel, probability, reason) {
+  const bookSelection = getBookSelection(match, market, sel);
+  const bookOdds = Number(bookSelection?.price);
+  if (!Number.isFinite(bookOdds) || bookOdds <= 1) return null;
+  return {
+    fixtureId: String(match.fixtureId),
+    match: `${match.home} vs ${match.away}`,
+    home: match.home,
+    away: match.away,
+    market,
+    sel,
+    p: Number(probability),
+    bookOdds,
+    fairOdds: oddsFromProb(probability),
+    edge: 0,
+    startTime: match.startTime,
+    tournamentName: match.tournamentName || "",
+    categoryName: match.categoryName || "",
+    displayLabel: pickDisplayLabel({ market, sel }),
+    reason,
+    source: "odds"
+  };
+}
+
+function normalizedProbabilities(outcomes) {
+  const priced = (outcomes || [])
+    .map((outcome) => ({ ...outcome, implied: 1 / Number(outcome.price) }))
+    .filter((outcome) => Number.isFinite(outcome.implied) && outcome.implied > 0);
+  const sum = priced.reduce((acc, outcome) => acc + outcome.implied, 0);
+  if (!sum) return [];
+  return priced.map((outcome) => ({ ...outcome, probability: outcome.implied / sum }));
 }
 
 function getMarketProfile(candidate) {
@@ -155,6 +189,12 @@ function getMarketProfile(candidate) {
 
 export function getRecommendationConfidence(candidate) {
   if (!candidate) return { label: "Redusa", tone: "muted" };
+  if (candidate.source === "odds") {
+    if (candidate.p >= 0.66 && candidate.bookOdds >= 1.24 && candidate.bookOdds <= 1.42) {
+      return { label: "Buna", tone: "medium" };
+    }
+    return { label: "Moderata", tone: "low" };
+  }
   const strongOdds = candidate.bookOdds >= 1.24 && candidate.bookOdds <= 1.48;
   if (candidate.p >= 0.72 && strongOdds && candidate.edge >= 0.04) {
     return { label: "Ridicata", tone: "high" };
@@ -195,7 +235,8 @@ export function getCandidatesForMatch(match, getHistEntry, minProbability = 0.58
         tournamentName: match.tournamentName || "",
         categoryName: match.categoryName || "",
         displayLabel: pickDisplayLabel({ market: "1X2", sel: best1x2.sel }),
-        reason: pickReasonText({ market: "1X2", sel: best1x2.sel })
+        reason: pickReasonText({ market: "1X2", sel: best1x2.sel }),
+        source: "history"
       });
     }
 
@@ -233,9 +274,59 @@ export function getCandidatesForMatch(match, getHistEntry, minProbability = 0.58
     .sort((a, b) => (b.p - a.p) || (b.edge - a.edge) || (a.bookOdds - b.bookOdds));
 }
 
+function fallbackCandidatesFromOdds(match) {
+  const candidates = [];
+
+  const ft1x2 = normalizedProbabilities(match.featuredMarkets?.ft1x2?.outcomes || []);
+  if (ft1x2.length === 3) {
+    const best = ft1x2.sort((a, b) => b.probability - a.probability)[0];
+    candidates.push(buildFallbackCandidate(
+      match,
+      "1X2",
+      best.key,
+      best.probability,
+      "Recomandare de fallback bazata pe structura cotelor disponibile pentru 1X2."
+    ));
+  }
+
+  const btts = normalizedProbabilities(match.featuredMarkets?.btts?.outcomes || []);
+  if (btts.length === 2) {
+    const best = btts.sort((a, b) => b.probability - a.probability)[0];
+    candidates.push(buildFallbackCandidate(
+      match,
+      "BTTS",
+      best.key,
+      best.probability,
+      "Recomandare de fallback bazata pe piata BTTS disponibila in feed-ul curent."
+    ));
+  }
+
+  for (const line of GOALS_LINES) {
+    const over = getBookSelection(match, `Goals ${line}`, "OVER");
+    const under = getBookSelection(match, `Goals ${line}`, "UNDER");
+    const probs = normalizedProbabilities([
+      over ? { key: "OVER", price: over.price } : null,
+      under ? { key: "UNDER", price: under.price } : null
+    ].filter(Boolean));
+    if (probs.length === 2) {
+      const best = probs.sort((a, b) => b.probability - a.probability)[0];
+      candidates.push(buildFallbackCandidate(
+        match,
+        `Goals ${line}`,
+        best.key,
+        best.probability,
+        "Recomandare de fallback bazata pe linia de goluri disponibila in feed."
+      ));
+    }
+  }
+
+  return candidates.filter(Boolean);
+}
+
 export function buildMatchRecommendation(match, getHistEntry) {
-  const candidates = getCandidatesForMatch(match, getHistEntry, 0.46)
+  const historyCandidates = getCandidatesForMatch(match, getHistEntry, 0.46)
     .filter((candidate) => Number.isFinite(candidate.bookOdds) && candidate.bookOdds <= MAX_TICKET_LEG_ODDS + 0.15);
+  const candidates = historyCandidates.length ? historyCandidates : fallbackCandidatesFromOdds(match);
   if (!candidates.length) return null;
 
   const scored = candidates
