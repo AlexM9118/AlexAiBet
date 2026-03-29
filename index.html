@@ -46,8 +46,16 @@
         <div class="date-helper" id="dayHelper">—</div>
 
         <div class="section-label section-gap">Selectează liga</div>
-        <div class="control-shell">
-          <select id="leagueSel"></select>
+        <div class="control-shell league-shell" id="leagueShell">
+          <button class="league-trigger" id="leagueTrigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+            <span class="league-trigger-copy">
+              <span class="league-trigger-label" id="leagueTriggerLabel">Toate ligile</span>
+              <span class="league-trigger-meta" id="leagueTriggerMeta">0 ligi disponibile</span>
+            </span>
+            <span class="league-trigger-icon" aria-hidden="true"></span>
+          </button>
+          <div class="league-menu" id="leagueMenu" role="listbox" hidden></div>
+          <select id="leagueSel" hidden aria-hidden="true" tabindex="-1"></select>
         </div>
       </section>
     </aside>

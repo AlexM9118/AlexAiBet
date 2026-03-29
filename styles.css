@@ -263,9 +263,12 @@ button, select, input{ font:inherit; }
 .section-gap{ margin-top:8px; }
 
 .control-shell{
+  position:relative;
   border:1px solid var(--line-strong);
   border-radius:14px;
-  background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
+  background:
+    linear-gradient(135deg, rgba(190,36,43,0.2), rgba(13,16,21,0.98)),
+    linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
   overflow:hidden;
 }
 
@@ -291,6 +294,11 @@ option{
   color:var(--text);
 }
 
+select option:checked{
+  background:linear-gradient(135deg, rgba(190,36,43,0.9), rgba(17,18,23,0.98));
+  color:#fff;
+}
+
 input[type="date"]{
   color-scheme:dark;
   min-height:52px;
@@ -306,6 +314,114 @@ input[type="date"]::-webkit-calendar-picker-indicator{
   grid-template-columns:minmax(0,1fr) auto;
   gap:10px;
   align-items:center;
+}
+
+.league-shell{
+  overflow:visible;
+}
+
+.league-trigger{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:13px 16px;
+  border:none;
+  color:var(--text);
+  cursor:pointer;
+  background:
+    linear-gradient(135deg, rgba(190,36,43,0.28), rgba(13,16,21,0.98)),
+    linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
+}
+
+.league-trigger-copy{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+}
+
+.league-trigger-label{
+  font-size:14px;
+  font-weight:800;
+  color:#fff3f4;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.league-trigger-meta{
+  margin-top:3px;
+  font-size:11px;
+  color:#d6b3b6;
+}
+
+.league-trigger-icon{
+  flex:0 0 14px;
+  width:14px;
+  height:14px;
+  border-right:2px solid #f1c5c8;
+  border-bottom:2px solid #f1c5c8;
+  transform:rotate(45deg) translateY(-2px);
+  transition:transform 0.18s ease;
+}
+
+.league-shell.open .league-trigger-icon{
+  transform:rotate(-135deg) translateY(1px);
+}
+
+.league-menu{
+  position:absolute;
+  left:0;
+  right:0;
+  top:calc(100% + 8px);
+  z-index:25;
+  max-height:360px;
+  overflow:auto;
+  padding:8px;
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:16px;
+  background:
+    linear-gradient(135deg, rgba(190,36,43,0.92), rgba(10,12,17,0.98) 58%),
+    linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
+  box-shadow:0 20px 60px rgba(0,0,0,0.46);
+}
+
+.league-option{
+  width:100%;
+  display:block;
+  padding:10px 12px;
+  border:none;
+  border-radius:12px;
+  text-align:left;
+  color:var(--text);
+  cursor:pointer;
+  background:transparent;
+  transition:background 0.18s ease, transform 0.18s ease;
+}
+
+.league-option:hover,
+.league-option.active{
+  transform:translateY(-1px);
+  background:rgba(255,255,255,0.08);
+}
+
+.league-option-copy{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+
+.league-option-title{
+  font-size:13px;
+  font-weight:800;
+  color:#fff8f8;
+}
+
+.league-option-subtitle{
+  font-size:11px;
+  color:#f0c8cb;
 }
 
 .day-count{

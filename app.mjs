@@ -26,6 +26,13 @@ let UI = { index: null, leagues: [], matches: [], matchByFixtureId: new Map(), m
 let HIST = null;
 let current = { day: null, leagueId: "all", fixtureId: null, ticketKey: "safe", view: "matches" };
 
+function leagueDisplayName(league) {
+  if (!league) return "Liga selectata";
+  return league.id === "all"
+    ? league.name
+    : league.categoryName ? `${league.categoryName} • ${league.name}` : league.name;
+}
+
 function nowLocal() {
   return new Date();
 }
@@ -158,16 +165,74 @@ function renderDaySel() {
 
 function renderLeagueSel() {
   const select = el("leagueSel");
+  const menu = el("leagueMenu");
   select.innerHTML = "";
+  menu.innerHTML = "";
+
   for (const league of UI.leagues) {
     const option = document.createElement("option");
     option.value = league.id;
-    option.textContent = league.id === "all"
-      ? league.name
-      : league.categoryName ? `${league.categoryName} • ${league.name}` : league.name;
+    option.textContent = leagueDisplayName(league);
     select.appendChild(option);
+
+    const item = document.createElement("button");
+    item.type = "button";
+    item.className = "league-option";
+    item.setAttribute("role", "option");
+    item.dataset.leagueId = league.id;
+    item.setAttribute("aria-selected", String(league.id === current.leagueId));
+    item.classList.toggle("active", league.id === current.leagueId);
+    const meta = league.id === "all"
+      ? `${UI.leagues.length - 1} ligi functionale`
+      : `${UI.matches.filter((match) => String(match.tournamentId) === String(league.id)).length} meciuri viitoare`;
+    item.innerHTML = `
+      <span class="league-option-copy">
+        <span class="league-option-title">${escapeHtml(league.id === "all" ? league.name : league.name)}</span>
+        <span class="league-option-subtitle">${escapeHtml(league.id === "all" ? "Toate competitiile disponibile in feed-ul curent" : `${league.categoryName} • ${meta}`)}</span>
+      </span>
+    `;
+    item.addEventListener("click", () => {
+      current.leagueId = league.id;
+      select.value = league.id;
+      closeLeagueMenu();
+      renderLeagueSel();
+      renderMatchesList();
+      renderTicketVariants(current.day);
+      goBackToMatches();
+    });
+    menu.appendChild(item);
   }
   select.value = current.leagueId || "all";
+  updateLeagueTrigger();
+}
+
+function updateLeagueTrigger() {
+  const league = UI.leagues.find((item) => item.id === current.leagueId) || UI.leagues[0];
+  const label = leagueDisplayName(league);
+  const meta = current.leagueId === "all"
+    ? `${UI.leagues.length - 1} ligi disponibile`
+    : `${UI.matches.filter((match) => String(match.tournamentId) === String(current.leagueId)).length} meciuri viitoare`;
+  el("leagueTriggerLabel").textContent = label;
+  el("leagueTriggerMeta").textContent = meta;
+}
+
+function closeLeagueMenu() {
+  const shell = el("leagueShell");
+  const trigger = el("leagueTrigger");
+  const menu = el("leagueMenu");
+  shell?.classList.remove("open");
+  trigger?.setAttribute("aria-expanded", "false");
+  if (menu) menu.hidden = true;
+}
+
+function toggleLeagueMenu(forceOpen = null) {
+  const shell = el("leagueShell");
+  const trigger = el("leagueTrigger");
+  const menu = el("leagueMenu");
+  const shouldOpen = forceOpen == null ? !shell?.classList.contains("open") : Boolean(forceOpen);
+  shell?.classList.toggle("open", shouldOpen);
+  trigger?.setAttribute("aria-expanded", String(shouldOpen));
+  if (menu) menu.hidden = !shouldOpen;
 }
 
 function renderMatchesList() {
@@ -183,7 +248,7 @@ function renderMatchesList() {
   const league = UI.leagues.find((item) => item.id === current.leagueId);
   const leagueLabel = current.leagueId === "all"
     ? "Toate ligile"
-    : league?.categoryName ? `${league.categoryName} • ${league.name}` : league?.name || "Liga selectata";
+    : leagueDisplayName(league);
 
   el("matchesSubtitle").textContent = list.length
     ? `${fmtDayLong(current.day)} • ${leagueLabel}`
@@ -466,6 +531,7 @@ function renderTicketVariants(day) {
 
 async function refreshDataAndRender() {
   current.fixtureId = null;
+  closeLeagueMenu();
   await loadAll();
   renderDaySel();
   renderLeagueSel();
@@ -495,6 +561,7 @@ async function init() {
     el("daySel").addEventListener("change", async () => {
       current.day = el("daySel").value;
       current.fixtureId = null;
+      closeLeagueMenu();
       renderMatchesList();
       renderTicketVariants(current.day);
       goBackToMatches();
@@ -513,9 +580,27 @@ async function init() {
     el("leagueSel").addEventListener("change", async () => {
       current.leagueId = el("leagueSel").value;
       current.fixtureId = null;
+      renderLeagueSel();
       renderMatchesList();
       renderTicketVariants(current.day);
       goBackToMatches();
+    });
+
+    el("leagueTrigger").addEventListener("click", () => {
+      toggleLeagueMenu();
+    });
+
+    document.addEventListener("click", (event) => {
+      const shell = el("leagueShell");
+      if (shell && !shell.contains(event.target)) {
+        closeLeagueMenu();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeLeagueMenu();
+      }
     });
 
     el("refreshBtn").addEventListener("click", async () => {
