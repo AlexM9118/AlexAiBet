@@ -27,13 +27,37 @@
     { "id": "G1",  "name": "Greece - Super League",            "type": "csv", "url": "https://www.football-data.co.uk/mmz4281/2526/G1.csv" },
 
     { "id": "AUT", "name": "Austria - Bundesliga",             "type": "csv", "url": "https://www.football-data.co.uk/new/AUT.csv" },
+    { "id": "BUL", "name": "Bulgaria - Parva Liga",            "type": "openfootball", "urls": [
+      "https://raw.githubusercontent.com/openfootball/europe/master/bulgaria/2023-24_bg1.txt",
+      "https://raw.githubusercontent.com/openfootball/europe/master/bulgaria/2024-25_bg1.txt"
+    ] },
     { "id": "NOR", "name": "Norway - Eliteserien",             "type": "csv", "url": "https://www.football-data.co.uk/new/NOR.csv" },
     { "id": "POL", "name": "Poland - Ekstraklasa",             "type": "csv", "url": "https://www.football-data.co.uk/new/POL.csv" },
     { "id": "ROU", "name": "Romania - Liga 1",                 "type": "csv", "url": "https://www.football-data.co.uk/new/ROU.csv" },
     { "id": "RUS", "name": "Russia - Premier League",          "type": "csv", "url": "https://www.football-data.co.uk/new/RUS.csv" },
+    { "id": "SER", "name": "Serbia - Superliga",               "type": "openfootball", "urls": [
+      "https://raw.githubusercontent.com/openfootball/europe/master/serbia/2023-24_rs1.txt",
+      "https://raw.githubusercontent.com/openfootball/europe/master/serbia/2024-25_rs1.txt"
+    ] },
     { "id": "SWE", "name": "Sweden - Allsvenskan",             "type": "csv", "url": "https://www.football-data.co.uk/new/SWE.csv" },
     { "id": "SWZ", "name": "Switzerland - Super League",       "type": "csv", "url": "https://www.football-data.co.uk/new/SWZ.csv" },
 
+    { "id": "UEFA", "name": "International Clubs - UEFA Competitions", "type": "openfootball", "urls": [
+      "https://raw.githubusercontent.com/openfootball/champions-league/master/2020-21/el.txt",
+      "https://raw.githubusercontent.com/openfootball/champions-league/master/2021-22/cl.txt",
+      "https://raw.githubusercontent.com/openfootball/champions-league/master/2021-22/el.txt",
+      "https://raw.githubusercontent.com/openfootball/champions-league/master/2021-22/conf.txt",
+      "https://raw.githubusercontent.com/openfootball/champions-league/master/2022-23/cl.txt",
+      "https://raw.githubusercontent.com/openfootball/champions-league/master/2022-23/el.txt",
+      "https://raw.githubusercontent.com/openfootball/champions-league/master/2022-23/conf.txt",
+      "https://raw.githubusercontent.com/openfootball/champions-league/master/2023-24/cl.txt",
+      "https://raw.githubusercontent.com/openfootball/champions-league/master/2023-24/el.txt",
+      "https://raw.githubusercontent.com/openfootball/champions-league/master/2023-24/conf.txt",
+      "https://raw.githubusercontent.com/openfootball/champions-league/master/2024-25/cl.txt",
+      "https://raw.githubusercontent.com/openfootball/champions-league/master/2024-25/el.txt",
+      "https://raw.githubusercontent.com/openfootball/champions-league/master/2024-25/conf.txt",
+      "https://raw.githubusercontent.com/openfootball/champions-league/master/2025-26/cl.txt"
+    ] },
     { "id": "USA", "name": "USA - MLS",                        "type": "csv", "url": "https://www.football-data.co.uk/new/USA.csv" }
   ]
 }

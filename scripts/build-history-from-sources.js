@@ -75,6 +75,69 @@ function parseXLSX(buffer){
   });
 }
 
+function parseOpenFootballDate(line, seasonStartYear){
+  const m = String(line || "").match(/^\s{2}(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+([A-Za-z]{3})\/(\d{1,2})(?:\s+(\d{4}))?\s*$/);
+  if (!m) return null;
+  const monthMap = {
+    Jan: 1, Feb: 2, Mar: 3, Apr: 4, May: 5, Jun: 6,
+    Jul: 7, Aug: 8, Sep: 9, Oct: 10, Nov: 11, Dec: 12
+  };
+  const mm = monthMap[m[2]];
+  const dd = Number(m[3]);
+  let yy = m[4] ? Number(m[4]) : null;
+  if (!yy){
+    yy = mm >= 7 ? seasonStartYear : seasonStartYear + 1;
+  }
+  return `${yy}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")}`;
+}
+
+function normalizeOpenFootballTeam(name){
+  let s = String(name || "").trim();
+  if (!s) return s;
+  s = s.replace(/\s+\([A-Z]{2,3}\)\s*$/g, "");
+  s = s.replace(/\s+/g, " ").trim();
+  return s;
+}
+
+function parseOpenFootballText(text){
+  const lines = String(text || "").split(/\r?\n/);
+  const seasonLine = lines.find(line => /^\s*=\s+.+\d{4}\/\d{2,4}\s*$/.test(line));
+  const seasonMatch = seasonLine ? seasonLine.match(/(\d{4})\/(\d{2}|\d{4})/) : null;
+  const seasonStartYear = seasonMatch ? Number(seasonMatch[1]) : new Date().getUTCFullYear();
+  const rows = [];
+  let currentDate = null;
+
+  for (const line of lines){
+    const parsedDate = parseOpenFootballDate(line, seasonStartYear);
+    if (parsedDate){
+      currentDate = parsedDate;
+      continue;
+    }
+
+    if (!currentDate) continue;
+
+    const match = line.match(/^\s+(?:(\d{1,2})[.:](\d{2})\s+)?(.+?)\s+v\s+(.+?)\s+(\d+)-(\d+)(?:\s|$)/);
+    if (!match) continue;
+
+    const home = normalizeOpenFootballTeam(match[3]);
+    const away = normalizeOpenFootballTeam(match[4]);
+    const fthg = Number(match[5]);
+    const ftag = Number(match[6]);
+
+    if (!home || !away || !Number.isFinite(fthg) || !Number.isFinite(ftag)) continue;
+
+    rows.push({
+      Date: currentDate,
+      HomeTeam: home,
+      AwayTeam: away,
+      FTHG: String(fthg),
+      FTAG: String(ftag)
+    });
+  }
+
+  return rows;
+}
+
 function toISODate(d){
   const s = String(d || "").trim();
   if (!s) return null;
@@ -191,7 +254,7 @@ async function main(){
   ensureDir(path.join("data", "stats"));
 
   for (const s of sources){
-    console.log("Source:", s.id, s.type, s.url);
+    console.log("Source:", s.id, s.type, s.url || s.urls);
 
     let rows = [];
     if (s.type === "csv"){
@@ -200,6 +263,12 @@ async function main(){
     } else if (s.type === "xlsx"){
       const buf = await fetchBuffer(s.url);
       rows = parseXLSX(buf);
+    } else if (s.type === "openfootball"){
+      const urls = Array.isArray(s.urls) ? s.urls : (s.url ? [s.url] : []);
+      for (const url of urls){
+        const text = await fetchText(url);
+        rows.push(...parseOpenFootballText(text));
+      }
     } else {
       console.log("Skip unknown type:", s.type);
       continue;
