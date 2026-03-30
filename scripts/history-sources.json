@@ -30,6 +30,10 @@
 
     { "id": "B1",  "name": "Belgium - First Division A",       "type": "csv", "url": "https://www.football-data.co.uk/mmz4281/2526/B1.csv" },
     { "id": "N1",  "name": "Netherlands - Eredivisie",         "type": "csv", "url": "https://www.football-data.co.uk/mmz4281/2526/N1.csv" },
+    { "id": "N2",  "name": "Netherlands - Eerste Divisie",     "type": "openfootball", "urls": [
+      "https://raw.githubusercontent.com/openfootball/europe/master/netherlands/2023-24_nl2.txt",
+      "https://raw.githubusercontent.com/openfootball/europe/master/netherlands/2024-25_nl2.txt"
+    ] },
     { "id": "P1",  "name": "Portugal - Primeira Liga",         "type": "csv", "url": "https://www.football-data.co.uk/mmz4281/2526/P1.csv" },
 
     { "id": "T1",  "name": "Turkey - Super Lig",               "type": "csv", "url": "https://www.football-data.co.uk/mmz4281/2526/T1.csv" },
@@ -78,6 +82,9 @@
     ] },
     { "id": "SWE", "name": "Sweden - Allsvenskan",             "type": "csv", "url": "https://www.football-data.co.uk/new/SWE.csv" },
     { "id": "SWZ", "name": "Switzerland - Super League",       "type": "csv", "url": "https://www.football-data.co.uk/new/SWZ.csv" },
+    { "id": "SA1", "name": "Saudi Arabia - Saudi Pro League",  "type": "openfootball", "urls": [
+      "https://raw.githubusercontent.com/openfootball/world/master/middle-east/saudi-arabia/2024-25_sa1.txt"
+    ] },
     { "id": "UKR", "name": "Ukraine - Premier League",         "type": "openfootball", "urls": [
       "https://raw.githubusercontent.com/openfootball/europe/master/ukraine/2023-24_ua1.txt",
       "https://raw.githubusercontent.com/openfootball/europe/master/ukraine/2024-25_ua1.txt"
