@@ -22,6 +22,26 @@ const FEATURED_MARKET_DEFINITIONS = {
   }
 };
 
+function buildTotalsDefinition(market, marketId, overOutcomeId, underOutcomeId) {
+  return {
+    market,
+    selection: "OVER",
+    label: `${market} OVER`,
+    marketId: String(marketId),
+    outcomeId: String(overOutcomeId)
+  };
+}
+
+function buildUnderDefinition(market, marketId, overOutcomeId, underOutcomeId) {
+  return {
+    market,
+    selection: "UNDER",
+    label: `${market} UNDER`,
+    marketId: String(marketId),
+    outcomeId: String(underOutcomeId)
+  };
+}
+
 const RECOMMENDATION_MARKET_DEFINITIONS = [
   {
     market: "BTTS",
@@ -92,7 +112,19 @@ const RECOMMENDATION_MARKET_DEFINITIONS = [
     label: "Goals 4.5 UNDER",
     marketId: "1014",
     outcomeId: "1015"
-  }
+  },
+  buildTotalsDefinition("Corners 8.5", 10799, 10799, 10800),
+  buildUnderDefinition("Corners 8.5", 10799, 10799, 10800),
+  buildTotalsDefinition("Corners 9.5", 10803, 10803, 10804),
+  buildUnderDefinition("Corners 9.5", 10803, 10803, 10804),
+  buildTotalsDefinition("Corners 10.5", 10807, 10807, 10808),
+  buildUnderDefinition("Corners 10.5", 10807, 10807, 10808),
+  buildTotalsDefinition("Cards 3.5", 10926, 10926, 10927),
+  buildUnderDefinition("Cards 3.5", 10926, 10926, 10927),
+  buildTotalsDefinition("Cards 4.5", 10930, 10930, 10931),
+  buildUnderDefinition("Cards 4.5", 10930, 10930, 10931),
+  buildTotalsDefinition("Cards 5.5", 10934, 10934, 10935),
+  buildUnderDefinition("Cards 5.5", 10934, 10934, 10935)
 ];
 
 function buildSelectionKey(market, selection) {
