@@ -142,7 +142,7 @@ function buildVarietyModel(matches) {
     : families >= 3 && largestShare <= 0.72
       ? "Varietate buna"
       : "Varietate limitata";
-  const copy = `${label} • ${families} tipuri de piete in recomandari. Dominanta maxima: ${Math.round(largestShare * 100)}%.`;
+  const copy = `${label} • ${families} tipuri de recomandari active. Dominanta maxima: ${Math.round(largestShare * 100)}%.`;
   return { label, copy };
 }
 
@@ -410,7 +410,7 @@ function renderLeagueSel() {
     item.innerHTML = `
       <span class="league-option-copy">
         <span class="league-option-title">${escapeHtml(league.id === "all" ? league.name : formatLeagueName(league.name))}</span>
-        <span class="league-option-subtitle">${escapeHtml(league.id === "all" ? "Toate competitiile disponibile in feed-ul curent" : `${formatCategoryName(league.categoryName)} • ${meta}`)}</span>
+        <span class="league-option-subtitle">${escapeHtml(league.id === "all" ? "Toate ligile active in feed-ul curent" : `${formatCategoryName(league.categoryName)} • ${meta}`)}</span>
       </span>
     `;
     item.addEventListener("click", () => {
@@ -482,8 +482,8 @@ function renderMatchesList() {
   el("dayMatchCount").textContent = String(list.length);
   el("dayHelper").textContent = current.leagueId === "all"
     ? (list.length
-      ? `${fmtDayLong(current.day)} • ${list.length} meciuri disponibile`
-      : `${fmtDayLong(current.day)} • fara meciuri pentru filtrul curent`)
+      ? `${fmtDayLong(current.day)} • ${list.length} meciuri in lista`
+      : `${fmtDayLong(current.day)} • fara meciuri in filtrul curent`)
     : (list.length
       ? `${list.length} meciuri viitoare in liga selectata`
       : "Fara meciuri viitoare in liga selectata");
@@ -496,10 +496,10 @@ function renderMatchesList() {
   el("matchesSubtitle").textContent = current.leagueId === "all"
     ? (list.length
       ? `${fmtDayLong(current.day)} • ${leagueLabel}`
-      : `${fmtDayLong(current.day)} • nicio partida in filtrul curent`)
+      : `${fmtDayLong(current.day)} • niciun meci in filtrul curent`)
     : (list.length
       ? `${leagueLabel} • toate meciurile viitoare`
-      : `${leagueLabel} • nicio partida viitoare in filtrul curent`);
+      : `${leagueLabel} • niciun meci viitor in filtrul curent`);
   const variety = buildVarietyModel(list);
   el("varietySubtitle").textContent = variety.copy;
 
@@ -525,7 +525,7 @@ function renderMatchesList() {
         <div class="match-clubs">
           <div class="match-name">${escapeHtml(match.home)} vs ${escapeHtml(match.away)}</div>
           <div class="match-date">${escapeHtml(fmtDateLocal(match.startTime))}</div>
-          <div class="match-link">Click pentru analiza completa a meciului</div>
+          <div class="match-link">Deschide analiza meciului</div>
         </div>
       </div>
       <div class="league-chip">${escapeHtml(formatCategoryName(match.categoryName))} • ${escapeHtml(formatLeagueName(match.tournamentName))}</div>
@@ -541,7 +541,7 @@ function renderMatchesList() {
                     <span class="reco-meter-safe" style="width:${successPct}%"></span>
                     <span class="reco-meter-risk" style="width:${dangerPct}%"></span>
                   </div>
-                  <div class="reco-meter-label">${escapeHtml(`${successPct}% sansa estimata`)}</div>
+                  <div class="reco-meter-label">${escapeHtml(`${successPct}% reusita estimata`)}</div>
                 </div>
               </div>
               <div class="reco-odds">${fmtOdds(recommendation.bookOdds)}</div>
@@ -550,14 +550,14 @@ function renderMatchesList() {
               secondaryRecommendation ? `
                 <div class="reco-pill reco-pill-secondary">
                   <div class="reco-copy">
-                    <div class="reco-label reco-label-secondary">Plan B</div>
+                    <div class="reco-label reco-label-secondary">Plan B • alternativa</div>
                     <div class="reco-pick reco-pick-secondary">${escapeHtml(secondaryRecommendation.displayLabel)}</div>
                     <div class="reco-meter reco-meter-secondary" aria-label="${escapeHtml(`${secondarySuccessPct}% sansa estimata`)}}">
                       <div class="reco-meter-bar reco-meter-bar-secondary">
                         <span class="reco-meter-safe" style="width:${secondarySuccessPct}%"></span>
                         <span class="reco-meter-risk" style="width:${secondaryDangerPct}%"></span>
                       </div>
-                      <div class="reco-meter-label reco-meter-label-secondary">${escapeHtml(`${secondarySuccessPct}% sansa estimata`)}</div>
+                      <div class="reco-meter-label reco-meter-label-secondary">${escapeHtml(`${secondarySuccessPct}% reusita estimata`)}</div>
                     </div>
                   </div>
                   <div class="reco-odds reco-odds-secondary">${fmtOdds(secondaryRecommendation.bookOdds)}</div>
