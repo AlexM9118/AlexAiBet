@@ -235,6 +235,30 @@ function scoreMarketFit(candidate) {
   return score;
 }
 
+function marketFamily(candidate) {
+  if (!candidate) return "OTHER";
+  if (candidate.market === "1X2") return "1X2";
+  if (candidate.market === "BTTS") return "BTTS";
+  if (String(candidate.market).startsWith("Goals ")) return "GOALS";
+  if (String(candidate.market).startsWith("Corners ")) return "CORNERS";
+  if (String(candidate.market).startsWith("Cards ")) return "CARDS";
+  return "OTHER";
+}
+
+function candidateScore(candidate) {
+  const profile = getMarketProfile(candidate);
+  const probabilityBoost = candidate.p * profile.probWeight;
+  const edgeBoost = Math.max(0, candidate.edge) * profile.edgeWeight * 10;
+  const oddsDistancePenalty = Math.abs(candidate.bookOdds - profile.idealOdds) * 1.05;
+  const lowOddsPenalty = candidate.bookOdds < profile.minOdds ? (profile.minOdds - candidate.bookOdds) * profile.lowOddsPenalty : 0;
+  const highOddsPenalty = candidate.bookOdds > 1.55 ? (candidate.bookOdds - 1.55) * profile.highOddsPenalty : 0;
+  const weakProbPenalty = candidate.p < profile.minProb ? (profile.minProb - candidate.p) * profile.weakProbPenalty * 4 : 0;
+  const genericLowOddsPenalty = candidate.bookOdds < MIN_MATCH_RECO_ODDS ? (MIN_MATCH_RECO_ODDS - candidate.bookOdds) * 1.8 : 0;
+  const genericOddsDistance = Math.abs(candidate.bookOdds - IDEAL_MATCH_RECO_ODDS) * 0.35;
+  const marketFit = scoreMarketFit(candidate);
+  return profile.baseBonus + marketFit + probabilityBoost + edgeBoost - oddsDistancePenalty - lowOddsPenalty - highOddsPenalty - weakProbPenalty - genericLowOddsPenalty - genericOddsDistance;
+}
+
 export function getRecommendationConfidence(candidate) {
   if (!candidate) return { label: "Redusa", tone: "muted" };
   if (candidate.source === "odds") {
@@ -319,7 +343,7 @@ export function getCandidatesForMatch(match, getHistEntry, minProbability = 0.58
   return candidates
     .filter(Boolean)
     .filter((candidate) => candidate.p >= minProbability)
-    .sort((a, b) => (b.p - a.p) || (b.edge - a.edge) || (a.bookOdds - b.bookOdds));
+    .sort((a, b) => candidateScore(b) - candidateScore(a) || (b.p - a.p) || (b.edge - a.edge) || (a.bookOdds - b.bookOdds));
 }
 
 function fallbackCandidatesFromOdds(match) {
@@ -420,17 +444,8 @@ export function buildMatchRecommendation(match, getHistEntry) {
 
   const scored = scoringPool
     .map((candidate) => {
+      const score = candidateScore(candidate);
       const profile = getMarketProfile(candidate);
-      const probabilityBoost = candidate.p * profile.probWeight;
-      const edgeBoost = Math.max(0, candidate.edge) * profile.edgeWeight * 10;
-      const oddsDistancePenalty = Math.abs(candidate.bookOdds - profile.idealOdds) * 1.05;
-      const lowOddsPenalty = candidate.bookOdds < profile.minOdds ? (profile.minOdds - candidate.bookOdds) * profile.lowOddsPenalty : 0;
-      const highOddsPenalty = candidate.bookOdds > 1.55 ? (candidate.bookOdds - 1.55) * profile.highOddsPenalty : 0;
-      const weakProbPenalty = candidate.p < profile.minProb ? (profile.minProb - candidate.p) * profile.weakProbPenalty * 4 : 0;
-      const genericLowOddsPenalty = candidate.bookOdds < MIN_MATCH_RECO_ODDS ? (MIN_MATCH_RECO_ODDS - candidate.bookOdds) * 1.8 : 0;
-      const genericOddsDistance = Math.abs(candidate.bookOdds - IDEAL_MATCH_RECO_ODDS) * 0.35;
-      const marketFit = scoreMarketFit(candidate);
-      const score = profile.baseBonus + marketFit + probabilityBoost + edgeBoost - oddsDistancePenalty - lowOddsPenalty - highOddsPenalty - weakProbPenalty - genericLowOddsPenalty - genericOddsDistance;
       return { candidate, score, profile };
     })
     .sort((a, b) => b.score - a.score || b.candidate.p - a.candidate.p || b.candidate.edge - a.candidate.edge);
@@ -514,7 +529,14 @@ function evaluateTicket(picks, config) {
     if (pick.bookOdds > config.maxOdds) return sum + (pick.bookOdds - config.maxOdds) * 2.2;
     return sum;
   }, 0);
-  const score = closeness * 12 + (1 - avgP) * 2.4 + (1 - combinedProbability) * 0.8 + preferredRangePenalty + oddsPenalty - (inTargetWindow ? 0.6 : 0);
+  const familyCounts = picks.reduce((map, pick) => {
+    const family = marketFamily(pick);
+    map.set(family, (map.get(family) || 0) + 1);
+    return map;
+  }, new Map());
+  const familyPenalty = Array.from(familyCounts.values()).reduce((sum, count) => sum + Math.max(0, count - 2) * 0.38, 0);
+  const underPenalty = picks.filter((pick) => String(pick.sel) === "UNDER" && marketFamily(pick) === "GOALS").length >= Math.max(3, Math.ceil(picks.length * 0.7)) ? 0.55 : 0;
+  const score = closeness * 12 + (1 - avgP) * 2.4 + (1 - combinedProbability) * 0.8 + preferredRangePenalty + oddsPenalty + familyPenalty + underPenalty - (inTargetWindow ? 0.6 : 0);
   return { picks: picks.slice(), target, totalOdds, combinedProbability, avgP, closeness, score };
 }
 
@@ -537,8 +559,9 @@ function buildTicketForTarget(matches, getHistEntry, config, exclusions = {}) {
       const options = getCandidatesForMatch(match, getHistEntry, 0.52)
         .filter((pick) => Number.isFinite(pick.bookOdds) && pick.bookOdds >= config.minOdds && pick.bookOdds <= Math.min(config.maxOdds, MAX_TICKET_LEG_ODDS))
         .filter((pick) => !excludedSelectionKeys.has(`${pick.fixtureId}|${pick.market}|${pick.sel}`))
+        .sort((a, b) => candidateScore(b) - candidateScore(a) || b.p - a.p)
         .slice(0, 6);
-      return options.length ? { fixtureId: match.fixtureId, options, rank: options[0].p + Math.max(0, options[0].edge) + (options[0].bookOdds / 10) } : null;
+      return options.length ? { fixtureId: match.fixtureId, options, rank: candidateScore(options[0]) + Math.max(0, options[0].edge) + (options[0].bookOdds / 10) } : null;
     })
     .filter(Boolean)
     .sort((a, b) => b.rank - a.rank)
