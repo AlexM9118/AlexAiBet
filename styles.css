@@ -924,8 +924,24 @@ select option:checked{
 }
 
 .detail-metric-accent{
-  background:linear-gradient(180deg, rgba(190,36,43,0.2), rgba(34,8,12,0.3));
-  border-color:rgba(190,36,43,0.24);
+  background:
+    radial-gradient(circle at top right, rgba(213,255,238,0.14), transparent 42%),
+    linear-gradient(180deg, rgba(24,110,74,0.3), rgba(8,38,29,0.44));
+  border-color:rgba(111,224,170,0.28);
+  box-shadow:inset 0 1px 0 rgba(220,255,240,0.08);
+}
+
+.detail-metric-accent .detail-metric-label{
+  color:#c7f0dc;
+}
+
+.detail-metric-accent .detail-metric-value{
+  color:#f4fff9;
+}
+
+.detail-metric-accent .detail-metric-copy,
+.detail-metric-accent .detail-metric-note{
+  color:rgba(236,255,246,0.8);
 }
 
 .detail-metric-label{
