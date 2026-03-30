@@ -28,6 +28,7 @@ import {
 let UI = { index: null, leagues: [], matches: [], matchByFixtureId: new Map(), matchRecommendations: new Map(), matchRecommendationPairs: new Map() };
 let HIST = null;
 let current = { day: null, calendarMonth: null, leagueId: "all", fixtureId: null, ticketKey: "safe", view: "matches", leagueQuery: "" };
+const EMPTY_LEAGUE_WINDOW_DAYS = 7;
 
 const TEAM_DISPLAY_ALIASES = {
   "ACS Champions FC Arges": "FC Arges",
@@ -76,6 +77,48 @@ function leagueSortRank(name) {
 function displayTeamName(name) {
   const raw = String(name || "").trim();
   return TEAM_DISPLAY_ALIASES[raw] || raw || "?";
+}
+
+function getLeagueFutureMatchCount(leagueId) {
+  if (!leagueId || leagueId === "all") return UI.matches.length;
+  return UI.matches.filter((match) => String(match.tournamentId) === String(leagueId)).length;
+}
+
+function buildConfiguredLeagues(configIds = [], tournamentCatalog = [], liveLeagues = [], matches = []) {
+  const liveById = new Map((liveLeagues || []).map((league) => [String(league.id ?? league.tournamentId), league]));
+  const catalogById = new Map((tournamentCatalog || []).map((league) => [String(league.tournamentId ?? league.id), league]));
+  const matchById = new Map();
+
+  for (const match of matches || []) {
+    if (!match?.tournamentId) continue;
+    const id = String(match.tournamentId);
+    if (!matchById.has(id)) {
+      matchById.set(id, {
+        id,
+        name: match.tournamentName || "",
+        categoryName: match.categoryName || ""
+      });
+    }
+  }
+
+  return Array.from(new Set((configIds || []).map(String).filter(Boolean)))
+    .map((id) => {
+      const live = liveById.get(id);
+      const catalog = catalogById.get(id);
+      const fromMatch = matchById.get(id);
+      return {
+        id,
+        name: live?.name || live?.tournamentName || fromMatch?.name || catalog?.tournamentName || catalog?.name || `Liga ${id}`,
+        categoryName: live?.categoryName || fromMatch?.categoryName || catalog?.categoryName || catalog?.countryName || ""
+      };
+    })
+    .sort((a, b) => {
+      const groupCmp = formatCategoryName(a.categoryName || "").localeCompare(formatCategoryName(b.categoryName || ""));
+      if (groupCmp !== 0) return groupCmp;
+      const rankCmp = leagueSortRank(a.name) - leagueSortRank(b.name);
+      if (rankCmp !== 0) return rankCmp;
+      return formatLeagueName(a.name).localeCompare(formatLeagueName(b.name));
+    });
 }
 
 function nowLocal() {
@@ -225,6 +268,9 @@ async function loadAll() {
   setStatus("Loading...");
   UI.index = await getJson("./data/ui/index.json");
   const matchesObj = await getJson("./data/ui/matches.json");
+  const leaguesObj = await getJson("./data/ui/leagues.json");
+  const tournamentCatalog = await getJson("./data/oddspapi_tournaments.json");
+  const tournamentConfig = await getJson("./scripts/oddspapi-tournament-ids.json");
   HIST = await getJson("./data/ui/history_stats.json");
 
   UI.matches = (matchesObj.matches || [])
@@ -242,23 +288,17 @@ async function loadAll() {
     }))
     .filter((match) => isFutureMatch(match.startTime));
 
+  const configuredIds = Array.isArray(tournamentConfig?.tournamentIds) ? tournamentConfig.tournamentIds : [];
+  const configuredLeagues = buildConfiguredLeagues(
+    configuredIds,
+    Array.isArray(tournamentCatalog) ? tournamentCatalog : [],
+    Array.isArray(leaguesObj?.leagues) ? leaguesObj.leagues : [],
+    UI.matches
+  );
+
   UI.leagues = [
     { id: "all", name: "Toate ligile", categoryName: "" },
-    ...Array.from(new Map(
-      UI.matches
-        .filter((match) => match.tournamentId && match.tournamentName)
-        .map((match) => [String(match.tournamentId), {
-          id: String(match.tournamentId),
-          name: match.tournamentName,
-          categoryName: match.categoryName || ""
-        }])
-    ).values()).sort((a, b) => {
-      const groupCmp = formatCategoryName(a.categoryName || "").localeCompare(formatCategoryName(b.categoryName || ""));
-      if (groupCmp !== 0) return groupCmp;
-      const rankCmp = leagueSortRank(a.name) - leagueSortRank(b.name);
-      if (rankCmp !== 0) return rankCmp;
-      return formatLeagueName(a.name).localeCompare(formatLeagueName(b.name));
-    })
+    ...configuredLeagues
   ];
 
   UI.matchByFixtureId = new Map(UI.matches.map((match) => [String(match.fixtureId), match]));
@@ -404,13 +444,16 @@ function renderLeagueSel() {
     item.dataset.leagueId = league.id;
     item.setAttribute("aria-selected", String(league.id === current.leagueId));
     item.classList.toggle("active", league.id === current.leagueId);
+    const matchCount = getLeagueFutureMatchCount(league.id);
     const meta = league.id === "all"
-      ? `${UI.leagues.length - 1} ligi functionale`
-      : `${UI.matches.filter((match) => String(match.tournamentId) === String(league.id)).length} meciuri viitoare`;
+      ? `${UI.leagues.length - 1} ligi configurate`
+      : matchCount
+        ? `${matchCount} meciuri viitoare`
+        : `Fara meciuri in urmatoarele ${EMPTY_LEAGUE_WINDOW_DAYS} zile`;
     item.innerHTML = `
       <span class="league-option-copy">
         <span class="league-option-title">${escapeHtml(league.id === "all" ? league.name : formatLeagueName(league.name))}</span>
-        <span class="league-option-subtitle">${escapeHtml(league.id === "all" ? "Toate ligile active in feed-ul curent" : `${formatCategoryName(league.categoryName)} • ${meta}`)}</span>
+        <span class="league-option-subtitle">${escapeHtml(league.id === "all" ? "Toate ligile configurate in produs" : `${formatCategoryName(league.categoryName)} • ${meta}`)}</span>
       </span>
     `;
     item.addEventListener("click", () => {
@@ -439,9 +482,12 @@ function renderLeagueSel() {
 function updateLeagueTrigger() {
   const league = UI.leagues.find((item) => item.id === current.leagueId) || UI.leagues[0];
   const label = leagueDisplayName(league);
+  const matchCount = getLeagueFutureMatchCount(current.leagueId);
   const meta = current.leagueId === "all"
     ? `${UI.leagues.length - 1} ligi disponibile`
-    : `${UI.matches.filter((match) => String(match.tournamentId) === String(current.leagueId)).length} meciuri viitoare`;
+    : matchCount
+      ? `${matchCount} meciuri viitoare`
+      : `Fara meciuri in urmatoarele ${EMPTY_LEAGUE_WINDOW_DAYS} zile`;
   el("leagueTriggerLabel").textContent = label;
   el("leagueTriggerMeta").textContent = meta;
 }
@@ -486,7 +532,7 @@ function renderMatchesList() {
       : `${fmtDayLong(current.day)} • fara meciuri in filtrul curent`)
     : (list.length
       ? `${list.length} meciuri viitoare in liga selectata`
-      : "Fara meciuri viitoare in liga selectata");
+      : `Nu exista meciuri in urmatoarele ${EMPTY_LEAGUE_WINDOW_DAYS} zile pentru aceasta liga.`);
 
   const league = UI.leagues.find((item) => item.id === current.leagueId);
   const leagueLabel = current.leagueId === "all"
@@ -499,12 +545,16 @@ function renderMatchesList() {
       : `${fmtDayLong(current.day)} • niciun meci in filtrul curent`)
     : (list.length
       ? `${leagueLabel} • toate meciurile viitoare`
-      : `${leagueLabel} • niciun meci viitor in filtrul curent`);
+      : `${leagueLabel} • fara meciuri in urmatoarele ${EMPTY_LEAGUE_WINDOW_DAYS} zile`);
   const variety = buildVarietyModel(list);
   el("varietySubtitle").textContent = variety.copy;
 
   if (!list.length) {
-    box.innerHTML = `<div class="reco-empty">Nu exista meciuri pentru combinatia de data si liga selectata.</div>`;
+    box.innerHTML = `<div class="reco-empty">${
+      current.leagueId === "all"
+        ? "Nu exista meciuri pentru combinatia de data si liga selectata."
+        : `Nu exista meciuri in urmatoarele ${EMPTY_LEAGUE_WINDOW_DAYS} zile pentru aceasta liga.`
+    }</div>`;
     return;
   }
 
