@@ -365,6 +365,17 @@ function pickSecondaryRecommendation(scored, primary) {
   if (!primary || !scored?.length) return null;
   const primaryFamily = marketFamily(primary);
   const primaryLine = candidateLineLabel(primary);
+  const prefersSideMarkets = primaryFamily === "GOALS" || primaryFamily === "BTTS";
+
+  const sideMarketAlt = prefersSideMarkets ? scored.find(({ candidate, score }) => (
+    candidate &&
+    !isSameRecommendation(candidate, primary) &&
+    ["CORNERS", "CARDS"].includes(marketFamily(candidate)) &&
+    candidate.bookOdds >= 1.24 &&
+    score >= scored[0].score - 0.34
+  ))?.candidate || null : null;
+
+  if (sideMarketAlt) return sideMarketAlt;
 
   const strongFamilyAlt = scored.find(({ candidate, score }) => (
     candidate &&
