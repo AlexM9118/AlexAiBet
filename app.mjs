@@ -175,11 +175,21 @@ function renderLeagueSel() {
   select.innerHTML = "";
   menu.innerHTML = "";
 
+  let currentGroup = null;
   for (const league of UI.leagues) {
     const option = document.createElement("option");
     option.value = league.id;
     option.textContent = leagueDisplayName(league);
     select.appendChild(option);
+
+    const groupName = league.id === "all" ? "General" : (league.categoryName || "Altele");
+    if (groupName !== currentGroup) {
+      currentGroup = groupName;
+      const header = document.createElement("div");
+      header.className = "league-group-label";
+      header.textContent = groupName;
+      menu.appendChild(header);
+    }
 
     const item = document.createElement("button");
     item.type = "button";
