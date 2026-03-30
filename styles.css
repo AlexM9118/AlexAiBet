@@ -280,15 +280,7 @@ button, select, input{ font:inherit; }
 
 .day-shell{
   cursor:pointer;
-}
-
-.day-shell input[type="date"]{
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-  opacity:0;
-  pointer-events:none;
+  overflow:visible;
 }
 
 .day-trigger{
@@ -304,6 +296,8 @@ button, select, input{ font:inherit; }
   background:
     linear-gradient(135deg, rgba(190,36,43,0.28), rgba(13,16,21,0.98)),
     linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
 }
 
 .day-trigger-copy{
@@ -378,21 +372,126 @@ select option:checked{
   color:#fff;
 }
 
-input[type="date"]{
-  color-scheme:dark;
-  min-height:52px;
-}
-
-input[type="date"]::-webkit-calendar-picker-indicator{
-  opacity:0.85;
-  cursor:pointer;
-}
-
 .day-control{
   display:grid;
   grid-template-columns:minmax(0,1fr) auto;
   gap:10px;
   align-items:center;
+}
+
+.day-menu{
+  position:absolute;
+  left:0;
+  right:0;
+  top:calc(100% + 8px);
+  z-index:30;
+  padding:10px;
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:16px;
+  background:
+    linear-gradient(135deg, rgba(190,36,43,0.92), rgba(10,12,17,0.98) 58%),
+    linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
+  box-shadow:0 20px 60px rgba(0,0,0,0.46);
+}
+
+.day-menu-head{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:center;
+  gap:8px;
+}
+
+.day-menu-month{
+  text-align:center;
+  font-size:14px;
+  font-weight:900;
+  color:#fff5f5;
+}
+
+.day-nav-btn{
+  width:32px;
+  height:32px;
+  display:grid;
+  place-items:center;
+  border:none;
+  border-radius:10px;
+  color:#fff0f1;
+  background:rgba(255,255,255,0.06);
+  cursor:pointer;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+
+.day-nav-btn:disabled{
+  opacity:0.38;
+  cursor:default;
+}
+
+.day-weekdays,
+.day-grid{
+  display:grid;
+  grid-template-columns:repeat(7, minmax(0, 1fr));
+}
+
+.day-weekdays{
+  gap:6px;
+  margin-top:10px;
+  color:#f2c7ca;
+  font-size:11px;
+  font-weight:800;
+  text-transform:uppercase;
+}
+
+.day-weekdays span{
+  display:grid;
+  place-items:center;
+  min-height:24px;
+}
+
+.day-grid{
+  gap:6px;
+  margin-top:6px;
+}
+
+.day-cell{
+  min-height:38px;
+  display:grid;
+  place-items:center;
+  border:none;
+  border-radius:10px;
+  color:#86777b;
+  background:rgba(255,255,255,0.03);
+  font-weight:800;
+  cursor:default;
+}
+
+.day-cell.is-available{
+  color:#fff7f7;
+  background:rgba(255,255,255,0.06);
+  cursor:pointer;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+  transition:transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+}
+
+.day-cell.is-available:hover{
+  transform:translateY(-1px);
+  background:rgba(255,255,255,0.12);
+}
+
+.day-cell.is-selected{
+  color:#fff;
+  background:linear-gradient(135deg, rgba(190,36,43,0.96), rgba(17,18,23,0.98));
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,0.1);
+}
+
+.day-cell:disabled{
+  opacity:0.38;
+  cursor:default;
+}
+
+.day-cell-empty{
+  background:transparent;
 }
 
 .league-shell{
@@ -412,6 +511,8 @@ input[type="date"]::-webkit-calendar-picker-indicator{
   background:
     linear-gradient(135deg, rgba(190,36,43,0.28), rgba(13,16,21,0.98)),
     linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
 }
 
 .league-trigger-copy{
@@ -490,6 +591,8 @@ input[type="date"]::-webkit-calendar-picker-indicator{
   cursor:pointer;
   background:transparent;
   transition:background 0.18s ease, transform 0.18s ease;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
 }
 
 .league-option:hover,
@@ -1272,4 +1375,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{
   .detail-title{ font-size:22px; }
   .brand-title{ font-size:21px; }
   .navlink{ min-width:unset; }
+  .day-menu,
+  .league-menu{ max-height:min(70vh, 420px); }
+  .day-cell{ min-height:42px; }
 }

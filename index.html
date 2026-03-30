@@ -38,14 +38,30 @@
         <div class="section-label">Selectează data</div>
         <div class="day-control">
           <div class="control-shell day-shell" id="dayShell">
-            <button class="day-trigger" id="dayTrigger" type="button">
+            <button class="day-trigger" id="dayTrigger" type="button" aria-haspopup="dialog" aria-expanded="false">
               <span class="day-trigger-copy">
                 <span class="day-trigger-label" id="dayTriggerLabel">Alege data</span>
                 <span class="day-trigger-meta" id="dayTriggerMeta">Meciurile viitoare disponibile</span>
               </span>
               <span class="day-trigger-icon" aria-hidden="true"></span>
             </button>
-            <input id="daySel" type="date" />
+            <div class="day-menu" id="dayMenu" hidden>
+              <div class="day-menu-head">
+                <button class="day-nav-btn" id="dayPrevMonthBtn" type="button" aria-label="Luna anterioară">←</button>
+                <div class="day-menu-month" id="dayMenuMonth">—</div>
+                <button class="day-nav-btn" id="dayNextMonthBtn" type="button" aria-label="Luna următoare">→</button>
+              </div>
+              <div class="day-weekdays" aria-hidden="true">
+                <span>L</span>
+                <span>Ma</span>
+                <span>Mi</span>
+                <span>J</span>
+                <span>V</span>
+                <span>S</span>
+                <span>D</span>
+              </div>
+              <div class="day-grid" id="dayGrid"></div>
+            </div>
           </div>
           <div class="day-count" id="dayMatchCount">0</div>
         </div>

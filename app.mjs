@@ -26,7 +26,7 @@ import {
 
 let UI = { index: null, leagues: [], matches: [], matchByFixtureId: new Map(), matchRecommendations: new Map() };
 let HIST = null;
-let current = { day: null, leagueId: "all", fixtureId: null, ticketKey: "safe", view: "matches" };
+let current = { day: null, calendarMonth: null, leagueId: "all", fixtureId: null, ticketKey: "safe", view: "matches" };
 
 const TEAM_DISPLAY_ALIASES = {
   "ACS Champions FC Arges": "FC Arges",
@@ -118,6 +118,33 @@ function pickDefaultDay(days) {
   return list.includes(today) ? today : list.find((day) => day >= today) || list[0];
 }
 
+function getAvailableDays() {
+  return Array.from(new Set(UI.matches.map((match) => match.day).filter(Boolean))).sort();
+}
+
+function monthKeyFromDay(day) {
+  return String(day || "").slice(0, 7);
+}
+
+function monthDateFromKey(monthKey) {
+  return new Date(`${monthKey}-01T12:00:00Z`);
+}
+
+function formatMonthLabel(monthKey) {
+  const date = monthDateFromKey(monthKey);
+  if (Number.isNaN(date.getTime())) return "—";
+  const label = new Intl.DateTimeFormat("ro-RO", {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC"
+  }).format(date);
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+function getCalendarMonths(days) {
+  return Array.from(new Set((days || []).map((day) => monthKeyFromDay(day)).filter(Boolean))).sort();
+}
+
 function renderRows(containerId, rows) {
   const box = el(containerId);
   if (!box) return;
@@ -202,14 +229,101 @@ async function loadAll() {
 }
 
 function renderDaySel() {
-  const input = el("daySel");
-  const days = Array.from(new Set(UI.matches.map((match) => match.day).filter(Boolean))).sort();
-  input.min = days[0] || "";
-  input.max = days[days.length - 1] || "";
+  const days = getAvailableDays();
   if (!days.includes(current.day)) current.day = pickDefaultDay(days);
-  input.value = current.day || "";
+  const months = getCalendarMonths(days);
+  if (!months.includes(current.calendarMonth)) current.calendarMonth = monthKeyFromDay(current.day) || months[0] || null;
   el("dayTriggerLabel").textContent = current.day ? fmtDayLong(current.day) : "Alege data";
   el("dayTriggerMeta").textContent = `${days.length} zile cu meciuri viitoare`;
+  renderDayCalendar();
+}
+
+function closeDayMenu() {
+  const shell = el("dayShell");
+  const trigger = el("dayTrigger");
+  const menu = el("dayMenu");
+  shell?.classList.remove("open");
+  trigger?.setAttribute("aria-expanded", "false");
+  if (menu) menu.hidden = true;
+}
+
+function toggleDayMenu(forceOpen = null) {
+  const shell = el("dayShell");
+  const trigger = el("dayTrigger");
+  const menu = el("dayMenu");
+  const shouldOpen = forceOpen == null ? !shell?.classList.contains("open") : Boolean(forceOpen);
+  shell?.classList.toggle("open", shouldOpen);
+  trigger?.setAttribute("aria-expanded", String(shouldOpen));
+  if (menu) menu.hidden = !shouldOpen;
+}
+
+function renderDayCalendar() {
+  const grid = el("dayGrid");
+  const monthLabel = el("dayMenuMonth");
+  const prevBtn = el("dayPrevMonthBtn");
+  const nextBtn = el("dayNextMonthBtn");
+  if (!grid || !monthLabel || !prevBtn || !nextBtn) return;
+
+  const days = getAvailableDays();
+  const months = getCalendarMonths(days);
+  const activeMonth = months.includes(current.calendarMonth) ? current.calendarMonth : (monthKeyFromDay(current.day) || months[0] || null);
+  current.calendarMonth = activeMonth;
+
+  grid.innerHTML = "";
+  if (!activeMonth) {
+    monthLabel.textContent = "Fără date";
+    prevBtn.disabled = true;
+    nextBtn.disabled = true;
+    return;
+  }
+
+  monthLabel.textContent = formatMonthLabel(activeMonth);
+  const monthIndex = months.indexOf(activeMonth);
+  prevBtn.disabled = monthIndex <= 0;
+  nextBtn.disabled = monthIndex === -1 || monthIndex >= months.length - 1;
+
+  const [yearStr, monthStr] = activeMonth.split("-");
+  const year = Number(yearStr);
+  const month = Number(monthStr);
+  const firstOfMonth = new Date(Date.UTC(year, month - 1, 1, 12));
+  const daysInMonth = new Date(Date.UTC(year, month, 0, 12)).getUTCDate();
+  const leadingSlots = (firstOfMonth.getUTCDay() + 6) % 7;
+  const availableSet = new Set(days);
+  const totalSlots = Math.ceil((leadingSlots + daysInMonth) / 7) * 7;
+
+  for (let slot = 0; slot < totalSlots; slot += 1) {
+    const dayNumber = slot - leadingSlots + 1;
+    const cell = document.createElement(dayNumber >= 1 && dayNumber <= daysInMonth ? "button" : "div");
+    cell.className = "day-cell";
+
+    if (dayNumber < 1 || dayNumber > daysInMonth) {
+      cell.classList.add("day-cell-empty");
+      grid.appendChild(cell);
+      continue;
+    }
+
+    const day = `${activeMonth}-${String(dayNumber).padStart(2, "0")}`;
+    const isAvailable = availableSet.has(day);
+    cell.type = "button";
+    cell.textContent = String(dayNumber);
+    cell.dataset.day = day;
+    cell.classList.toggle("is-available", isAvailable);
+    cell.classList.toggle("is-selected", day === current.day);
+    if (!isAvailable) {
+      cell.disabled = true;
+    } else {
+      cell.addEventListener("click", () => {
+        current.day = day;
+        current.fixtureId = null;
+        closeDayMenu();
+        renderDaySel();
+        renderMatchesList();
+        renderTicketVariants(current.day);
+        goBackToMatches();
+      });
+    }
+    grid.appendChild(cell);
+  }
 }
 
 function renderLeagueSel() {
@@ -632,6 +746,7 @@ function renderTicketVariants(day) {
 
 async function refreshDataAndRender() {
   current.fixtureId = null;
+  closeDayMenu();
   closeLeagueMenu();
   await loadAll();
   renderDaySel();
@@ -659,33 +774,29 @@ async function init() {
     el("viewTicketsBtn").addEventListener("click", () => setView("tickets"));
     el("backToMatchesBtn").addEventListener("click", () => goBackToMatches());
 
-    el("daySel").addEventListener("change", async () => {
-      current.day = el("daySel").value;
-      current.fixtureId = null;
+    el("dayTrigger").addEventListener("click", (event) => {
+      event.stopPropagation();
       closeLeagueMenu();
-      renderMatchesList();
-      renderTicketVariants(current.day);
-      goBackToMatches();
+      toggleDayMenu();
     });
 
-    el("dayShell").addEventListener("click", () => {
-      const input = el("daySel");
-      if (typeof input.showPicker === "function") {
-        input.showPicker();
-      } else {
-        input.focus();
-        input.click();
+    el("dayPrevMonthBtn").addEventListener("click", (event) => {
+      event.stopPropagation();
+      const months = getCalendarMonths(getAvailableDays());
+      const idx = months.indexOf(current.calendarMonth);
+      if (idx > 0) {
+        current.calendarMonth = months[idx - 1];
+        renderDayCalendar();
       }
     });
 
-    el("dayTrigger").addEventListener("click", (event) => {
+    el("dayNextMonthBtn").addEventListener("click", (event) => {
       event.stopPropagation();
-      const input = el("daySel");
-      if (typeof input.showPicker === "function") {
-        input.showPicker();
-      } else {
-        input.focus();
-        input.click();
+      const months = getCalendarMonths(getAvailableDays());
+      const idx = months.indexOf(current.calendarMonth);
+      if (idx !== -1 && idx < months.length - 1) {
+        current.calendarMonth = months[idx + 1];
+        renderDayCalendar();
       }
     });
 
@@ -698,12 +809,18 @@ async function init() {
       goBackToMatches();
     });
 
-    el("leagueTrigger").addEventListener("click", () => {
+    el("leagueTrigger").addEventListener("click", (event) => {
+      event.stopPropagation();
+      closeDayMenu();
       toggleLeagueMenu();
     });
 
     document.addEventListener("click", (event) => {
+      const dayShell = el("dayShell");
       const shell = el("leagueShell");
+      if (dayShell && !dayShell.contains(event.target)) {
+        closeDayMenu();
+      }
       if (shell && !shell.contains(event.target)) {
         closeLeagueMenu();
       }
@@ -711,6 +828,7 @@ async function init() {
 
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") {
+        closeDayMenu();
         closeLeagueMenu();
       }
     });
