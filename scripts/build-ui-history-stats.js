@@ -53,6 +53,66 @@ function normalizeTeamGeneric(name){
   return s;
 }
 
+function stripDiacritics(value){
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function tokenizeTeamName(name){
+  const tokenAliases = {
+    ath: "atletico",
+    sp: "sporting"
+  };
+
+  return stripDiacritics(name)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .split(/\s+/)
+    .map((token) => tokenAliases[token] || token)
+    .filter(Boolean);
+}
+
+function compactTeamKey(name){
+  return tokenizeTeamName(name).join("");
+}
+
+function findFuzzyTeamName(teamStats, name){
+  const entries = Object.keys(teamStats || {});
+  if (!name || !entries.length) return null;
+
+  const queryTokens = tokenizeTeamName(name);
+  const queryCompact = queryTokens.join("");
+  if (!queryTokens.length) return null;
+
+  let best = null;
+
+  for (const entry of entries){
+    const entryTokens = tokenizeTeamName(entry);
+    const entryCompact = entryTokens.join("");
+    if (!entryTokens.length) continue;
+
+    const overlap = queryTokens.filter((token) => entryTokens.includes(token)).length;
+    const querySubset = queryTokens.every((token) => entryTokens.includes(token));
+    const entrySubset = entryTokens.every((token) => queryTokens.includes(token));
+    const compactContains = queryCompact && entryCompact && (entryCompact.includes(queryCompact) || queryCompact.includes(entryCompact));
+
+    let score = 0;
+    if (queryCompact === entryCompact) score += 4;
+    if (querySubset) score += 2.5;
+    if (entrySubset) score += 1.25;
+    if (compactContains) score += 1;
+    score += overlap * 0.7;
+
+    if (overlap === 0) continue;
+    if (!best || score > best.score || (score === best.score && entry.length < best.name.length)) {
+      best = { name: entry, score };
+    }
+  }
+
+  return best && best.score >= 2.2 ? best.name : null;
+}
+
 function applyAliases(rawName, aliases){
   const raw = String(rawName || "").trim();
   return aliases[raw] || raw;
@@ -95,6 +155,13 @@ function pickTeamStatsMulti(statsFile, rawName){
   for (const attempt of attempts) {
     const found = pickTeamStatsExactOrCI(teamStats, attempt.value);
     if (found) return { stats: found, pickedName: attempt.value, method: attempt.method };
+  }
+
+  for (const attempt of attempts) {
+    const fuzzyName = findFuzzyTeamName(teamStats, attempt.value);
+    if (fuzzyName && teamStats[fuzzyName]) {
+      return { stats: teamStats[fuzzyName], pickedName: fuzzyName, method: `${attempt.method}-fuzzy` };
+    }
   }
 
   return null;

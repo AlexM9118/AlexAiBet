@@ -225,6 +225,7 @@ function scoreMarketFit(candidate) {
 
   if (candidate.market === "BTTS") {
     if (candidate.bookOdds >= 1.24 && candidate.bookOdds <= 1.48) score += 0.18;
+    if (candidate.bookOdds > 1.48 && candidate.bookOdds <= 1.72 && candidate.p >= 0.58) score += 0.14;
     if (candidate.sel === "NO" && candidate.bookOdds < 1.22) score -= 0.1;
     return score;
   }
@@ -232,14 +233,18 @@ function scoreMarketFit(candidate) {
   const goalsMatch = String(candidate.market).match(/^Goals (\d+(?:\.\d+)?)$/);
   if (goalsMatch) {
     const line = Number(goalsMatch[1]);
-    if (candidate.sel === "OVER" && line >= 2.5 && line <= 3.5) score += 0.2;
-    if (candidate.sel === "UNDER" && line >= 2.5 && line <= 3.5) score += 0.16;
+    if (candidate.sel === "OVER" && line >= 2.5 && line <= 3.5) score += 0.22;
+    if (candidate.sel === "UNDER" && line === 2.5 && candidate.bookOdds >= 1.34 && candidate.bookOdds <= 1.56) score += 0.14;
+    if (candidate.sel === "UNDER" && line >= 2.5 && line <= 3.5) score += 0.06;
     if (candidate.sel === "UNDER" && line >= 4.5) score -= 0.5;
     if (candidate.sel === "UNDER" && line >= 4.5 && candidate.bookOdds < 1.34) score -= 0.18;
-    if (candidate.sel === "UNDER" && line === 3.5 && candidate.bookOdds < 1.30) score -= 0.3;
-    if (candidate.sel === "UNDER" && line === 3.5 && candidate.bookOdds >= 1.30 && candidate.bookOdds < 1.34) score -= 0.14;
-    if (candidate.sel === "OVER" && line <= 1.5 && candidate.bookOdds < 1.26) score -= 0.28;
-    if (candidate.sel === "OVER" && line <= 1.5 && candidate.bookOdds >= 1.26 && candidate.bookOdds <= 1.38) score += 0.08;
+    if (candidate.sel === "UNDER" && line === 3.5 && candidate.bookOdds < 1.30) score -= 0.34;
+    if (candidate.sel === "UNDER" && line === 3.5 && candidate.bookOdds >= 1.30 && candidate.bookOdds < 1.38) score -= 0.22;
+    if (candidate.sel === "UNDER" && line === 3.5 && candidate.bookOdds >= 1.38 && candidate.bookOdds <= 1.48) score -= 0.1;
+    if (candidate.sel === "UNDER" && line === 3.5) score -= 0.06;
+    if (candidate.sel === "OVER" && line <= 1.5 && candidate.bookOdds < 1.26) score -= 0.34;
+    if (candidate.sel === "OVER" && line <= 1.5 && candidate.bookOdds >= 1.26 && candidate.bookOdds < 1.32) score -= 0.16;
+    if (candidate.sel === "OVER" && line <= 1.5 && candidate.bookOdds >= 1.32 && candidate.bookOdds <= 1.42) score -= 0.02;
     return score;
   }
 
@@ -304,23 +309,36 @@ function chooseDisplayedRecommendation(scored) {
 
   const familyOfBest = marketFamily(best);
   const lineOfBest = candidateLineLabel(best);
+  const goalsLine = String(best.market).match(/^Goals (\d+(?:\.\d+)?)$/)?.[1];
 
   const familyAlt = ordered.find(({ candidate, score }) => (
     candidate &&
     marketFamily(candidate) !== familyOfBest &&
     candidate.bookOdds >= 1.26 &&
-    score >= ordered[0].score - 0.28
+    score >= ordered[0].score - 0.3
   ))?.candidate || null;
 
-  if (familyAlt && familyOfBest === "GOALS") {
+  if (familyAlt && familyOfBest === "GOALS" && ["1.5", "3.5", "4.5"].includes(String(goalsLine))) {
     return familyAlt;
+  }
+
+  const balancedGoalsAlt = ordered.find(({ candidate, score }) => (
+    candidate &&
+    marketFamily(candidate) === "GOALS" &&
+    candidate.market === "Goals 2.5" &&
+    candidate.bookOdds >= 1.28 &&
+    score >= ordered[0].score - 0.24
+  ))?.candidate || null;
+
+  if (balancedGoalsAlt && familyOfBest === "GOALS" && ["1.5", "3.5", "4.5"].includes(String(goalsLine))) {
+    return balancedGoalsAlt;
   }
 
   const lineAlt = ordered.find(({ candidate, score }) => (
     candidate &&
     candidateLineLabel(candidate) !== lineOfBest &&
     candidate.bookOdds >= 1.28 &&
-    score >= ordered[0].score - 0.16
+    score >= ordered[0].score - 0.2
   ))?.candidate || null;
 
   if (
