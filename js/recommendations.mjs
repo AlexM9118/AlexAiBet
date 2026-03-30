@@ -377,6 +377,26 @@ function pickSecondaryRecommendation(scored, primary) {
 
   if (sideMarketAlt) return sideMarketAlt;
 
+  const bttsAlt = primaryFamily === "GOALS" ? scored.find(({ candidate, score }) => (
+    candidate &&
+    !isSameRecommendation(candidate, primary) &&
+    marketFamily(candidate) === "BTTS" &&
+    candidate.bookOdds >= 1.24 &&
+    score >= scored[0].score - 0.3
+  ))?.candidate || null : null;
+
+  if (bttsAlt) return bttsAlt;
+
+  const oneXTwoAlt = primaryFamily === "GOALS" || primaryFamily === "BTTS" ? scored.find(({ candidate, score }) => (
+    candidate &&
+    !isSameRecommendation(candidate, primary) &&
+    marketFamily(candidate) === "1X2" &&
+    candidate.bookOdds >= 1.26 &&
+    score >= scored[0].score - 0.26
+  ))?.candidate || null : null;
+
+  if (oneXTwoAlt) return oneXTwoAlt;
+
   const strongFamilyAlt = scored.find(({ candidate, score }) => (
     candidate &&
     !isSameRecommendation(candidate, primary) &&
