@@ -737,21 +737,21 @@ function renderDetailHistory(entry) {
     const cardsValue = hasCardsData(stats, side) ? formatHistoryValue(cardsFor, 2) : "—";
 
     box.innerHTML = `
-      <div class="history-inline ${side === "home" ? "history-inline-home" : "history-inline-away"}">
+        <div class="history-inline ${side === "home" ? "history-inline-home" : "history-inline-away"}">
         <div class="history-inline-cell">
-          <span class="history-inline-k">GM</span>
+          <span class="history-inline-k">Goluri marcate</span>
           <span class="history-inline-v">${escapeHtml(formatHistoryValue(goalsFor, 2))}</span>
         </div>
         <div class="history-inline-cell">
-          <span class="history-inline-k">GP</span>
+          <span class="history-inline-k">Goluri primite</span>
           <span class="history-inline-v">${escapeHtml(formatHistoryValue(goalsAgainst, 2))}</span>
         </div>
         <div class="history-inline-cell">
-          <span class="history-inline-k">Corn</span>
+          <span class="history-inline-k">Cornere</span>
           <span class="history-inline-v">${escapeHtml(cornersValue)}</span>
         </div>
         <div class="history-inline-cell">
-          <span class="history-inline-k">Cart</span>
+          <span class="history-inline-k">Cartonase</span>
           <span class="history-inline-v">${escapeHtml(cardsValue)}</span>
         </div>
       </div>
