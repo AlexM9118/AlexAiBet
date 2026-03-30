@@ -187,6 +187,54 @@ function getMarketProfile(candidate) {
   };
 }
 
+function scoreMarketFit(candidate) {
+  let score = candidate.source === "history" ? 0.18 : -0.02;
+
+  if (candidate.market === "1X2") {
+    if (candidate.sel === "DRAW") score -= 0.12;
+    if (candidate.p >= 0.68 && candidate.bookOdds >= 1.28 && candidate.bookOdds <= 1.62) score += 0.22;
+    if (candidate.bookOdds < 1.24) score -= 0.18;
+    return score;
+  }
+
+  if (candidate.market === "BTTS") {
+    if (candidate.bookOdds >= 1.24 && candidate.bookOdds <= 1.48) score += 0.18;
+    if (candidate.sel === "NO" && candidate.bookOdds < 1.22) score -= 0.1;
+    return score;
+  }
+
+  const goalsMatch = String(candidate.market).match(/^Goals (\d+(?:\.\d+)?)$/);
+  if (goalsMatch) {
+    const line = Number(goalsMatch[1]);
+    if (candidate.sel === "OVER" && line >= 2.5 && line <= 3.5) score += 0.2;
+    if (candidate.sel === "UNDER" && line >= 2.5 && line <= 3.5) score += 0.16;
+    if (candidate.sel === "UNDER" && line >= 4.5) score -= 0.28;
+    if (candidate.sel === "UNDER" && line === 3.5 && candidate.bookOdds < 1.34) score -= 0.12;
+    if (candidate.sel === "OVER" && line <= 1.5 && candidate.bookOdds < 1.28) score -= 0.22;
+    return score;
+  }
+
+  const cornersMatch = String(candidate.market).match(/^Corners (\d+(?:\.\d+)?)$/);
+  if (cornersMatch) {
+    const line = Number(cornersMatch[1]);
+    if (line >= 8.5 && line <= 10.5 && candidate.bookOdds >= 1.26) score += 0.16;
+    if (candidate.p >= 0.63 && candidate.edge >= 0.02) score += 0.16;
+    if (candidate.bookOdds < 1.23) score -= 0.12;
+    return score;
+  }
+
+  const cardsMatch = String(candidate.market).match(/^Cards (\d+(?:\.\d+)?)$/);
+  if (cardsMatch) {
+    const line = Number(cardsMatch[1]);
+    if (line >= 3.5 && line <= 5.5 && candidate.bookOdds >= 1.28) score += 0.18;
+    if (candidate.p >= 0.62 && candidate.edge >= 0.02) score += 0.18;
+    if (candidate.bookOdds < 1.24) score -= 0.12;
+    return score;
+  }
+
+  return score;
+}
+
 export function getRecommendationConfidence(candidate) {
   if (!candidate) return { label: "Redusa", tone: "muted" };
   if (candidate.source === "odds") {
@@ -320,6 +368,44 @@ function fallbackCandidatesFromOdds(match) {
     }
   }
 
+  for (const line of CORNERS_LINES) {
+    const over = getBookSelection(match, `Corners ${line}`, "OVER");
+    const under = getBookSelection(match, `Corners ${line}`, "UNDER");
+    const probs = normalizedProbabilities([
+      over ? { key: "OVER", price: over.price } : null,
+      under ? { key: "UNDER", price: under.price } : null
+    ].filter(Boolean));
+    if (probs.length === 2) {
+      const best = probs.sort((a, b) => b.probability - a.probability)[0];
+      candidates.push(buildFallbackCandidate(
+        match,
+        `Corners ${line}`,
+        best.key,
+        best.probability,
+        "Fallback din piata de cornere disponibila in feed-ul curent."
+      ));
+    }
+  }
+
+  for (const line of CARDS_LINES) {
+    const over = getBookSelection(match, `Cards ${line}`, "OVER");
+    const under = getBookSelection(match, `Cards ${line}`, "UNDER");
+    const probs = normalizedProbabilities([
+      over ? { key: "OVER", price: over.price } : null,
+      under ? { key: "UNDER", price: under.price } : null
+    ].filter(Boolean));
+    if (probs.length === 2) {
+      const best = probs.sort((a, b) => b.probability - a.probability)[0];
+      candidates.push(buildFallbackCandidate(
+        match,
+        `Cards ${line}`,
+        best.key,
+        best.probability,
+        "Fallback din piata de cartonase disponibila in feed-ul curent."
+      ));
+    }
+  }
+
   return candidates.filter(Boolean);
 }
 
@@ -343,7 +429,8 @@ export function buildMatchRecommendation(match, getHistEntry) {
       const weakProbPenalty = candidate.p < profile.minProb ? (profile.minProb - candidate.p) * profile.weakProbPenalty * 4 : 0;
       const genericLowOddsPenalty = candidate.bookOdds < MIN_MATCH_RECO_ODDS ? (MIN_MATCH_RECO_ODDS - candidate.bookOdds) * 1.8 : 0;
       const genericOddsDistance = Math.abs(candidate.bookOdds - IDEAL_MATCH_RECO_ODDS) * 0.35;
-      const score = profile.baseBonus + probabilityBoost + edgeBoost - oddsDistancePenalty - lowOddsPenalty - highOddsPenalty - weakProbPenalty - genericLowOddsPenalty - genericOddsDistance;
+      const marketFit = scoreMarketFit(candidate);
+      const score = profile.baseBonus + marketFit + probabilityBoost + edgeBoost - oddsDistancePenalty - lowOddsPenalty - highOddsPenalty - weakProbPenalty - genericLowOddsPenalty - genericOddsDistance;
       return { candidate, score, profile };
     })
     .sort((a, b) => b.score - a.score || b.candidate.p - a.candidate.p || b.candidate.edge - a.candidate.edge);

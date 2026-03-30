@@ -161,6 +161,8 @@ function renderDaySel() {
   input.max = days[days.length - 1] || "";
   if (!days.includes(current.day)) current.day = pickDefaultDay(days);
   input.value = current.day || "";
+  el("dayTriggerLabel").textContent = current.day ? fmtDayLong(current.day) : "Alege data";
+  el("dayTriggerMeta").textContent = `${days.length} zile cu meciuri viitoare`;
 }
 
 function renderLeagueSel() {
@@ -568,6 +570,17 @@ async function init() {
     });
 
     el("dayShell").addEventListener("click", () => {
+      const input = el("daySel");
+      if (typeof input.showPicker === "function") {
+        input.showPicker();
+      } else {
+        input.focus();
+        input.click();
+      }
+    });
+
+    el("dayTrigger").addEventListener("click", (event) => {
+      event.stopPropagation();
       const input = el("daySel");
       if (typeof input.showPicker === "function") {
         input.showPicker();

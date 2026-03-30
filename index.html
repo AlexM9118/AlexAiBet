@@ -38,6 +38,13 @@
         <div class="section-label">Selectează data</div>
         <div class="day-control">
           <div class="control-shell day-shell" id="dayShell">
+            <button class="day-trigger" id="dayTrigger" type="button">
+              <span class="day-trigger-copy">
+                <span class="day-trigger-label" id="dayTriggerLabel">Alege data</span>
+                <span class="day-trigger-meta" id="dayTriggerMeta">Meciurile viitoare disponibile</span>
+              </span>
+              <span class="day-trigger-icon" aria-hidden="true"></span>
+            </button>
             <input id="daySel" type="date" />
           </div>
           <div class="day-count" id="dayMatchCount">0</div>
@@ -90,14 +97,22 @@
           <div class="detail-meta" id="matchMeta">—</div>
         </div>
 
-        <div class="detail-grid">
-          <article class="detail-card detail-card-accent">
-            <div class="detail-card-title">Recomandare principală</div>
-            <div class="primary-pick" id="primaryPick">—</div>
-            <div class="primary-pick-meta" id="primaryPickMeta">—</div>
-            <div class="primary-pick-note" id="primaryPickNote">—</div>
+        <div class="detail-summary">
+          <article class="detail-metric detail-metric-accent">
+            <div class="detail-metric-label">Recomandare</div>
+            <div class="detail-metric-value" id="primaryPick">—</div>
+            <div class="detail-metric-copy" id="primaryPickMeta">—</div>
+            <div class="detail-metric-note" id="primaryPickNote">—</div>
           </article>
 
+          <article class="detail-metric">
+            <div class="detail-metric-label">Încredere model</div>
+            <div class="detail-metric-value" id="confidenceScore">—</div>
+            <div class="detail-metric-copy" id="confidenceCopy">—</div>
+          </article>
+        </div>
+
+        <div class="detail-grid detail-grid-main">
           <article class="detail-card">
             <div class="detail-card-title">1X2</div>
             <div class="rows compact-rows" id="market1x2"></div>
@@ -127,11 +142,11 @@
 
           <article class="detail-card">
             <div class="detail-card-title">Încredere model</div>
-            <div class="confidence-score" id="confidenceScore">—</div>
-            <div class="confidence-copy" id="confidenceCopy">—</div>
             <ul class="confidence-list" id="confidenceList"></ul>
           </article>
+        </div>
 
+        <div class="detail-grid detail-grid-secondary">
           <article class="detail-card">
             <div class="detail-card-title">Formă gazde</div>
             <div class="rows compact-rows" id="histHome"></div>
