@@ -167,6 +167,15 @@ function pickTeamStatsMulti(statsFile, rawName){
   return null;
 }
 
+function getAllStatsIds(){
+  const dir = path.join("data", "stats");
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir)
+    .filter((file) => file.endsWith(".json"))
+    .map((file) => file.replace(/\.json$/i, ""))
+    .sort();
+}
+
 function main(){
   const mapPath = path.join("scripts","league-map.json");
   const matchesPath = path.join("data","ui","matches.json");
@@ -180,6 +189,7 @@ function main(){
   const manual = loadAliasesFile(path.join("scripts", "team-aliases.json")).aliases;
   const generated = loadAliasesFile(path.join("scripts", "team-aliases.generated.json")).aliases;
   const aliases = mergeAliases(manual, generated);
+  const allStatsIds = getAllStatsIds();
 
   const out = {
     generatedAtUTC: new Date().toISOString(),
@@ -189,6 +199,26 @@ function main(){
   };
 
   const statsCache = new Map();
+  const loadStatsFile = (fdId) => {
+    if (!statsCache.has(fdId)){
+      const p = path.join("data","stats",`${fdId}.json`);
+      statsCache.set(fdId, fs.existsSync(p) ? readJson(p) : null);
+    }
+    return statsCache.get(fdId);
+  };
+
+  function pickTeamStatsFromDomesticFallback(rawName, originalRaw){
+    for (const statsId of allStatsIds) {
+      if (statsId === "UEFA") continue;
+      const statsFile = loadStatsFile(statsId);
+      if (!statsFile) continue;
+      const picked = pickTeamStatsMulti(statsFile, rawName, originalRaw);
+      if (picked) {
+        return { ...picked, fallbackLeagueId: statsId };
+      }
+    }
+    return null;
+  }
 
   for (const m of matches){
     const fixtureId = String(m.fixtureId);
@@ -217,13 +247,8 @@ function main(){
       continue;
     }
 
-    if (!statsCache.has(fdId)){
-      const p = path.join("data","stats",`${fdId}.json`);
-      statsCache.set(fdId, fs.existsSync(p) ? readJson(p) : null);
-      out.lookback = out.lookback ?? statsCache.get(fdId)?.lookback ?? null;
-    }
-
-    const statsFile = statsCache.get(fdId);
+    const statsFile = loadStatsFile(fdId);
+    out.lookback = out.lookback ?? statsFile?.lookback ?? null;
     if (!statsFile){
       out.byFixtureId[fixtureId] = {
         footballDataId: fdId,
@@ -238,8 +263,13 @@ function main(){
       continue;
     }
 
-    const hPick = pickTeamStatsMulti(statsFile, homeAliased, homeRaw);
-    const aPick = pickTeamStatsMulti(statsFile, awayAliased, awayRaw);
+    let hPick = pickTeamStatsMulti(statsFile, homeAliased, homeRaw);
+    let aPick = pickTeamStatsMulti(statsFile, awayAliased, awayRaw);
+
+    if (fdId === "UEFA") {
+      if (!hPick) hPick = pickTeamStatsFromDomesticFallback(homeAliased, homeRaw);
+      if (!aPick) aPick = pickTeamStatsFromDomesticFallback(awayAliased, awayRaw);
+    }
 
     let note = null;
     if (!hPick || !aPick){
@@ -261,6 +291,8 @@ function main(){
       awayPicked: aPick?.pickedName || null,
       homePickMethod: hPick?.method || null,
       awayPickMethod: aPick?.method || null,
+      homeFallbackLeagueId: hPick?.fallbackLeagueId || null,
+      awayFallbackLeagueId: aPick?.fallbackLeagueId || null,
       homeStats: hPick?.stats || null,
       awayStats: aPick?.stats || null,
       note
