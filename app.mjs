@@ -406,6 +406,10 @@ function toggleLeagueMenu(forceOpen = null) {
   shell?.classList.toggle("open", shouldOpen);
   trigger?.setAttribute("aria-expanded", String(shouldOpen));
   if (menu) menu.hidden = !shouldOpen;
+  if (shouldOpen && menu) {
+    const activeItem = menu.querySelector('.league-option.active');
+    activeItem?.scrollIntoView({ block: "nearest" });
+  }
 }
 
 function renderMatchesList() {
