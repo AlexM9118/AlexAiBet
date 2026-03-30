@@ -39,7 +39,7 @@ function leagueDisplayName(league) {
   if (!league) return "Liga selectata";
   return league.id === "all"
     ? league.name
-    : league.categoryName ? `${league.categoryName} • ${formatLeagueName(league.name)}` : formatLeagueName(league.name);
+    : league.categoryName ? `${formatCategoryName(league.categoryName)} • ${formatLeagueName(league.name)}` : formatLeagueName(league.name);
 }
 
 function formatLeagueName(name) {
@@ -51,6 +51,15 @@ function formatLeagueName(name) {
     "Serie B": "Serie B",
     "Championship": "Championship",
     "Division 1": "Division 1"
+  };
+  return map[raw] || raw;
+}
+
+function formatCategoryName(name) {
+  const raw = String(name || "").trim();
+  const map = {
+    "Turkiye": "Turcia",
+    "Turkey": "Turcia"
   };
   return map[raw] || raw;
 }
@@ -239,7 +248,7 @@ async function loadAll() {
           categoryName: match.categoryName || ""
         }])
     ).values()).sort((a, b) => {
-      const groupCmp = String(a.categoryName || "").localeCompare(String(b.categoryName || ""));
+      const groupCmp = formatCategoryName(a.categoryName || "").localeCompare(formatCategoryName(b.categoryName || ""));
       if (groupCmp !== 0) return groupCmp;
       const rankCmp = leagueSortRank(a.name) - leagueSortRank(b.name);
       if (rankCmp !== 0) return rankCmp;
@@ -362,7 +371,7 @@ function renderLeagueSel() {
   const query = String(current.leagueQuery || "").trim().toLowerCase();
   const visibleLeagues = UI.leagues.filter((league) => {
     if (!query) return true;
-    const haystack = `${league.categoryName || ""} ${formatLeagueName(league.name)} ${league.id === "all" ? "toate ligile" : ""}`.toLowerCase();
+    const haystack = `${formatCategoryName(league.categoryName || "")} ${formatLeagueName(league.name)} ${league.id === "all" ? "toate ligile" : ""}`.toLowerCase();
     return haystack.includes(query);
   });
 
@@ -373,7 +382,7 @@ function renderLeagueSel() {
     option.textContent = leagueDisplayName(league);
     select.appendChild(option);
 
-    const groupName = league.id === "all" ? "General" : (league.categoryName || "Altele");
+    const groupName = league.id === "all" ? "General" : (formatCategoryName(league.categoryName) || "Altele");
     if (groupName !== currentGroup) {
       currentGroup = groupName;
       const header = document.createElement("div");
@@ -395,7 +404,7 @@ function renderLeagueSel() {
     item.innerHTML = `
       <span class="league-option-copy">
         <span class="league-option-title">${escapeHtml(league.id === "all" ? league.name : formatLeagueName(league.name))}</span>
-        <span class="league-option-subtitle">${escapeHtml(league.id === "all" ? "Toate competitiile disponibile in feed-ul curent" : `${league.categoryName} • ${meta}`)}</span>
+        <span class="league-option-subtitle">${escapeHtml(league.id === "all" ? "Toate competitiile disponibile in feed-ul curent" : `${formatCategoryName(league.categoryName)} • ${meta}`)}</span>
       </span>
     `;
     item.addEventListener("click", () => {
@@ -509,7 +518,7 @@ function renderMatchesList() {
           <div class="match-link">Click pentru analiza completa a meciului</div>
         </div>
       </div>
-      <div class="league-chip">${escapeHtml(match.categoryName)} • ${escapeHtml(formatLeagueName(match.tournamentName))}</div>
+      <div class="league-chip">${escapeHtml(formatCategoryName(match.categoryName))} • ${escapeHtml(formatLeagueName(match.tournamentName))}</div>
       ${
         recommendation ? `
           <div class="reco-pill">
@@ -661,7 +670,7 @@ async function loadAndRenderMatch() {
   const away = displayTeamName(fixture.away || summary?.away || "?");
 
   el("matchTitle").textContent = `${home} vs ${away}`;
-  el("matchMeta").textContent = `${fixture.categoryName || summary?.categoryName || "—"} • ${formatLeagueName(fixture.tournamentName || summary?.tournamentName || "—")} • ${fmtTime(fixture.startTime || summary?.startTime)}`;
+  el("matchMeta").textContent = `${formatCategoryName(fixture.categoryName || summary?.categoryName || "—")} • ${formatLeagueName(fixture.tournamentName || summary?.tournamentName || "—")} • ${fmtTime(fixture.startTime || summary?.startTime)}`;
 
   renderPrimaryPick(summary, recommendation);
   renderRows("market1x2", rowsFromFeaturedMarket(featuredMarkets.ft1x2, "ft1x2", fmtOdds));

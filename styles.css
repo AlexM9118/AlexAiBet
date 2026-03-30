@@ -266,6 +266,13 @@ button, select, input{ font:inherit; }
   padding:24px 20px;
 }
 
+@media (max-height: 920px){
+  .sidebar-panel{
+    position:relative;
+    top:auto;
+  }
+}
+
 .section-label{
   display:inline-flex;
   align-items:center;
