@@ -114,7 +114,7 @@ function getMatchRecommendation(fixtureId) {
 function marketFamilyLabel(recommendation) {
   if (!recommendation) return "N/A";
   if (recommendation.market === "1X2") return "1X2";
-  if (recommendation.market === "BTTS") return "BTTS";
+  if (recommendation.market === "BTTS") return "Ambele marcheaza";
   if (String(recommendation.market).startsWith("Goals ")) return "Goluri";
   if (String(recommendation.market).startsWith("Corners ")) return "Cornere";
   if (String(recommendation.market).startsWith("Cards ")) return "Cartonase";
@@ -307,7 +307,7 @@ function renderDayCalendar() {
 
   grid.innerHTML = "";
   if (!activeMonth) {
-    monthLabel.textContent = "Fără date";
+    monthLabel.textContent = "Fara date";
     prevBtn.disabled = true;
     nextBtn.disabled = true;
     return;
@@ -422,7 +422,7 @@ function renderLeagueSel() {
   if (!visibleLeagues.length) {
     const empty = document.createElement("div");
     empty.className = "league-empty";
-    empty.textContent = "Nicio competiție nu corespunde căutării.";
+    empty.textContent = "Nicio competitie nu corespunde cautarii.";
     menu.appendChild(empty);
   }
 
@@ -616,7 +616,7 @@ function renderPrimaryPick(match, recommendation) {
   if (!recommendation) {
     el("primaryPick").textContent = "Fara recomandare principala";
     el("primaryPickMeta").textContent = "Meciul ramane disponibil pentru consultare, dar nu fortam o selectie fara suport bun.";
-    el("primaryPickNote").textContent = "Poti verifica 1X2 si BTTS sau reveni la lista principala pentru alte meciuri.";
+    el("primaryPickNote").textContent = "Poti verifica 1X2 si Ambele marcheaza sau reveni la lista principala pentru alte meciuri.";
     return;
   }
   const confidence = recommendation.confidence || getRecommendationConfidence(recommendation);

@@ -28,20 +28,20 @@
       </div>
     </a>
 
-    <nav class="main-nav" aria-label="Navigație principală">
+    <nav class="main-nav" aria-label="Navigatie principala">
       <button class="navlink active" id="viewMatchesBtn" type="button">Meciuri</button>
       <button class="navlink" id="viewTicketsBtn" type="button">Bilete</button>
     </nav>
 
     <div class="top-actions">
-      <button class="iconbtn" id="refreshBtn" aria-label="Reîncarcă datele" title="Reîncarcă datele">↻</button>
+      <button class="iconbtn" id="refreshBtn" aria-label="Reincarca datele" title="Reincarca datele">↻</button>
     </div>
   </header>
 
   <main class="dashboard">
     <aside class="sidebar-shell">
       <section class="panel sidebar-panel">
-        <div class="section-label">Selectează data</div>
+        <div class="section-label">Selecteaza data</div>
         <div class="day-control">
           <div class="control-shell day-shell" id="dayShell">
             <button class="day-trigger" id="dayTrigger" type="button" aria-haspopup="dialog" aria-expanded="false">
@@ -53,9 +53,9 @@
             </button>
             <div class="day-menu" id="dayMenu" hidden>
               <div class="day-menu-head">
-                <button class="day-nav-btn" id="dayPrevMonthBtn" type="button" aria-label="Luna anterioară">←</button>
+                <button class="day-nav-btn" id="dayPrevMonthBtn" type="button" aria-label="Luna anterioara">←</button>
                 <div class="day-menu-month" id="dayMenuMonth">—</div>
-                <button class="day-nav-btn" id="dayNextMonthBtn" type="button" aria-label="Luna următoare">→</button>
+                <button class="day-nav-btn" id="dayNextMonthBtn" type="button" aria-label="Luna urmatoare">→</button>
               </div>
               <div class="day-weekdays" aria-hidden="true">
                 <span>L</span>
@@ -74,7 +74,7 @@
 
         <div class="date-helper" id="dayHelper">—</div>
 
-        <div class="section-label section-gap">Selectează liga</div>
+        <div class="section-label section-gap">Selecteaza liga</div>
         <div class="control-shell league-shell" id="leagueShell">
           <button class="league-trigger" id="leagueTrigger" type="button" aria-haspopup="listbox" aria-expanded="false">
             <span class="league-trigger-copy">
@@ -85,7 +85,7 @@
           </button>
           <div class="league-menu" id="leagueMenu" role="listbox" hidden>
             <div class="league-search-shell">
-              <input class="league-search-input" id="leagueSearchInput" type="text" placeholder="Caută țară sau ligă" autocomplete="off" />
+              <input class="league-search-input" id="leagueSearchInput" type="text" placeholder="Cauta tara sau liga" autocomplete="off" />
             </div>
             <div id="leagueMenuOptions"></div>
           </div>
@@ -107,7 +107,7 @@
 
         <div class="match-list-head">
           <div>Meci</div>
-          <div class="head-center">Competiție</div>
+          <div class="head-center">Competitie</div>
           <div class="head-right">Pariu recomandat</div>
         </div>
 
@@ -116,11 +116,11 @@
 
       <section class="panel detail-panel" id="detailView" hidden>
         <div class="detail-topbar">
-          <button class="back-btn" id="backToMatchesBtn" type="button">← Înapoi la meciuri</button>
+          <button class="back-btn" id="backToMatchesBtn" type="button">← Inapoi la meciuri</button>
         </div>
 
         <div class="detail-hero">
-          <div class="hero-kicker">Analiză meci</div>
+          <div class="hero-kicker">Analiza meci</div>
           <div class="detail-title" id="matchTitle">Alege un meci</div>
           <div class="detail-meta" id="matchMeta">—</div>
         </div>
@@ -134,7 +134,7 @@
           </article>
 
           <article class="detail-metric">
-            <div class="detail-metric-label">Încredere model</div>
+            <div class="detail-metric-label">Incredere model</div>
             <div class="detail-metric-value" id="confidenceScore">—</div>
             <div class="detail-metric-copy" id="confidenceCopy">—</div>
           </article>
@@ -147,7 +147,7 @@
           </article>
 
           <article class="detail-card">
-            <div class="detail-card-title">BTTS</div>
+            <div class="detail-card-title">Ambele marcheaza</div>
             <div class="rows compact-rows" id="marketBtts"></div>
           </article>
 
@@ -163,13 +163,13 @@
           </article>
 
           <article class="detail-card" id="cardsCard">
-            <div class="detail-card-title">Cartonașe</div>
+            <div class="detail-card-title">Cartonase</div>
             <div class="rows compact-rows" id="cardsQuickRows"></div>
             <div class="market-footnote" id="cardsHint"></div>
           </article>
 
           <article class="detail-card">
-            <div class="detail-card-title">Încredere model</div>
+            <div class="detail-card-title">Incredere model</div>
             <ul class="confidence-list" id="confidenceList"></ul>
           </article>
         </div>
@@ -181,13 +181,13 @@
           </article>
 
           <article class="detail-card">
-            <div class="detail-card-title">Formă gazde</div>
+            <div class="detail-card-title">Forma gazde</div>
             <div class="rows compact-rows" id="histHome"></div>
             <div class="context-note" id="histHomeNote"></div>
           </article>
 
           <article class="detail-card">
-            <div class="detail-card-title">Formă oaspeți</div>
+            <div class="detail-card-title">Forma oaspeti</div>
             <div class="rows compact-rows" id="histAway"></div>
             <div class="context-note" id="histAwayNote"></div>
           </article>
@@ -202,7 +202,7 @@
       <section class="panel ticket-panel" id="ticketsView" hidden>
         <div class="ticket-hero">
           <div class="hero-kicker">Bilete</div>
-          <div class="ticket-title" id="recTitle">3 variante calibrate pe cote țintă</div>
+          <div class="ticket-title" id="recTitle">3 variante calibrate pe cote tinta</div>
           <div class="ticket-subtitle" id="recSub">—</div>
           <div class="status hero-status">
             <span class="dot" id="statusDot"></span>
@@ -217,7 +217,7 @@
   </main>
 
   <footer class="footer">
-    Cotele sunt orientative și pot varia. Joacă responsabil.
+    Cotele sunt orientative si pot varia. Joaca responsabil.
   </footer>
 
   <script type="module" src="./app.mjs"></script>

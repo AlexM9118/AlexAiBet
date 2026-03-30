@@ -47,7 +47,7 @@ export function pickDisplayLabel(pick) {
     return { HOME: "Victorie gazde", DRAW: "Egal", AWAY: "Victorie oaspeti" }[pick.sel] || "1X2";
   }
   if (pick.market === "BTTS") {
-    return pick.sel === "YES" ? "Ambele marcheaza" : "BTTS - Nu";
+    return pick.sel === "YES" ? "Ambele marcheaza" : "Ambele marcheaza - Nu";
   }
 
   const goalsMatch = String(pick.market).match(/^Goals (\d+(?:\.\d+)?)$/);
@@ -276,7 +276,7 @@ function scoreMarketFit(candidate) {
 function marketFamily(candidate) {
   if (!candidate) return "OTHER";
   if (candidate.market === "1X2") return "1X2";
-  if (candidate.market === "BTTS") return "BTTS";
+  if (candidate.market === "BTTS") return "Ambele marcheaza";
   if (String(candidate.market).startsWith("Goals ")) return "GOALS";
   if (String(candidate.market).startsWith("Corners ")) return "CORNERS";
   if (String(candidate.market).startsWith("Cards ")) return "CARDS";
@@ -466,7 +466,7 @@ function fallbackCandidatesFromOdds(match) {
       "BTTS",
       best.key,
       best.probability,
-      "Recomandare de fallback bazata pe piata BTTS disponibila in feed-ul curent."
+      "Recomandare de fallback bazata pe piata Ambele marcheaza disponibila in feed-ul curent."
     ));
   }
 
