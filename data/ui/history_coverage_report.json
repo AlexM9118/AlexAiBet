@@ -1,364 +1,46 @@
 {
-  "generatedAtUTC": "2026-03-30T20:28:35.120Z",
+  "generatedAtUTC": "2026-03-30T20:55:54.390Z",
   "lookback": 5,
-  "matchesTotal": 392,
+  "matchesTotal": 69,
   "leagues": [
     {
-      "leagueKey": "USA | MLS",
-      "categoryName": "USA",
-      "tournamentName": "MLS",
+      "leagueKey": "Argentina | Liga Profesional",
+      "categoryName": "Argentina",
+      "tournamentName": "Liga Profesional",
       "footballDataIds": [
-        "USA"
+        "ARG"
       ],
-      "total": 30,
-      "ok": 30,
-      "okPct": 100,
+      "total": 31,
+      "ok": 20,
+      "okPct": 64.5,
       "noLeagueMap": 0,
       "missingStatsFile": 0,
-      "missingTeams": 0,
+      "missingTeams": 11,
       "notEnoughSamples": 0,
       "other": 0
     },
     {
-      "leagueKey": "Spain | LaLiga",
-      "categoryName": "Spain",
-      "tournamentName": "LaLiga",
+      "leagueKey": "Brazil | Brasileiro Serie A",
+      "categoryName": "Brazil",
+      "tournamentName": "Brasileiro Serie A",
       "footballDataIds": [
-        "SP1"
+        "BRA"
       ],
       "total": 20,
-      "ok": 20,
-      "okPct": 100,
-      "noLeagueMap": 0,
-      "missingStatsFile": 0,
-      "missingTeams": 0,
-      "notEnoughSamples": 0,
-      "other": 0
-    },
-    {
-      "leagueKey": "Italy | Serie A",
-      "categoryName": "Italy",
-      "tournamentName": "Serie A",
-      "footballDataIds": [
-        "I1"
-      ],
-      "total": 20,
-      "ok": 20,
-      "okPct": 100,
-      "noLeagueMap": 0,
-      "missingStatsFile": 0,
-      "missingTeams": 0,
-      "notEnoughSamples": 0,
-      "other": 0
-    },
-    {
-      "leagueKey": "France | Ligue 1",
-      "categoryName": "France",
-      "tournamentName": "Ligue 1",
-      "footballDataIds": [
-        "F1"
-      ],
-      "total": 18,
       "ok": 18,
-      "okPct": 100,
+      "okPct": 90,
       "noLeagueMap": 0,
       "missingStatsFile": 0,
-      "missingTeams": 0,
+      "missingTeams": 2,
       "notEnoughSamples": 0,
       "other": 0
     },
     {
-      "leagueKey": "Germany | Bundesliga",
-      "categoryName": "Germany",
-      "tournamentName": "Bundesliga",
+      "leagueKey": "China | Chinese Super League",
+      "categoryName": "China",
+      "tournamentName": "Chinese Super League",
       "footballDataIds": [
-        "D1"
-      ],
-      "total": 18,
-      "ok": 18,
-      "okPct": 100,
-      "noLeagueMap": 0,
-      "missingStatsFile": 0,
-      "missingTeams": 0,
-      "notEnoughSamples": 0,
-      "other": 0
-    },
-    {
-      "leagueKey": "Netherlands | Eredivisie",
-      "categoryName": "Netherlands",
-      "tournamentName": "Eredivisie",
-      "footballDataIds": [
-        "N1"
-      ],
-      "total": 18,
-      "ok": 18,
-      "okPct": 100,
-      "noLeagueMap": 0,
-      "missingStatsFile": 0,
-      "missingTeams": 0,
-      "notEnoughSamples": 0,
-      "other": 0
-    },
-    {
-      "leagueKey": "Bulgaria | Parva Liga",
-      "categoryName": "Bulgaria",
-      "tournamentName": "Parva Liga",
-      "footballDataIds": [
-        "BUL"
-      ],
-      "total": 16,
-      "ok": 12,
-      "okPct": 75,
-      "noLeagueMap": 0,
-      "missingStatsFile": 0,
-      "missingTeams": 4,
-      "notEnoughSamples": 0,
-      "other": 0
-    },
-    {
-      "leagueKey": "Russia | Premier League",
-      "categoryName": "Russia",
-      "tournamentName": "Premier League",
-      "footballDataIds": [
-        "RUS"
-      ],
-      "total": 16,
-      "ok": 16,
-      "okPct": 100,
-      "noLeagueMap": 0,
-      "missingStatsFile": 0,
-      "missingTeams": 0,
-      "notEnoughSamples": 0,
-      "other": 0
-    },
-    {
-      "leagueKey": "Romania | Superliga",
-      "categoryName": "Romania",
-      "tournamentName": "Superliga",
-      "footballDataIds": [
-        "ROU"
-      ],
-      "total": 15,
-      "ok": 15,
-      "okPct": 100,
-      "noLeagueMap": 0,
-      "missingStatsFile": 0,
-      "missingTeams": 0,
-      "notEnoughSamples": 0,
-      "other": 0
-    },
-    {
-      "leagueKey": "England | Premier League",
-      "categoryName": "England",
-      "tournamentName": "Premier League",
-      "footballDataIds": [
-        "E0"
-      ],
-      "total": 15,
-      "ok": 15,
-      "okPct": 100,
-      "noLeagueMap": 0,
-      "missingStatsFile": 0,
-      "missingTeams": 0,
-      "notEnoughSamples": 0,
-      "other": 0
-    },
-    {
-      "leagueKey": "England | Championship",
-      "categoryName": "England",
-      "tournamentName": "Championship",
-      "footballDataIds": [
-        "E1"
-      ],
-      "total": 12,
-      "ok": 12,
-      "okPct": 100,
-      "noLeagueMap": 0,
-      "missingStatsFile": 0,
-      "missingTeams": 0,
-      "notEnoughSamples": 0,
-      "other": 0
-    },
-    {
-      "leagueKey": "Austria | Bundesliga",
-      "categoryName": "Austria",
-      "tournamentName": "Bundesliga",
-      "footballDataIds": [
-        "AUT"
-      ],
-      "total": 12,
-      "ok": 12,
-      "okPct": 100,
-      "noLeagueMap": 0,
-      "missingStatsFile": 0,
-      "missingTeams": 0,
-      "notEnoughSamples": 0,
-      "other": 0
-    },
-    {
-      "leagueKey": "Scotland | Premiership",
-      "categoryName": "Scotland",
-      "tournamentName": "Premiership",
-      "footballDataIds": [
-        "SC0"
-      ],
-      "total": 12,
-      "ok": 12,
-      "okPct": 100,
-      "noLeagueMap": 0,
-      "missingStatsFile": 0,
-      "missingTeams": 0,
-      "notEnoughSamples": 0,
-      "other": 0
-    },
-    {
-      "leagueKey": "Spain | LaLiga 2",
-      "categoryName": "Spain",
-      "tournamentName": "LaLiga 2",
-      "footballDataIds": [
-        "SP2"
-      ],
-      "total": 11,
-      "ok": 11,
-      "okPct": 100,
-      "noLeagueMap": 0,
-      "missingStatsFile": 0,
-      "missingTeams": 0,
-      "notEnoughSamples": 0,
-      "other": 0
-    },
-    {
-      "leagueKey": "Greece | Super League",
-      "categoryName": "Greece",
-      "tournamentName": "Super League",
-      "footballDataIds": [
-        "G1"
-      ],
-      "total": 10,
-      "ok": 10,
-      "okPct": 100,
-      "noLeagueMap": 0,
-      "missingStatsFile": 0,
-      "missingTeams": 0,
-      "notEnoughSamples": 0,
-      "other": 0
-    },
-    {
-      "leagueKey": "Italy | Serie B",
-      "categoryName": "Italy",
-      "tournamentName": "Serie B",
-      "footballDataIds": [
-        "I2"
-      ],
-      "total": 10,
-      "ok": 10,
-      "okPct": 100,
-      "noLeagueMap": 0,
-      "missingStatsFile": 0,
-      "missingTeams": 0,
-      "notEnoughSamples": 0,
-      "other": 0
-    },
-    {
-      "leagueKey": "Poland | I Liga",
-      "categoryName": "Poland",
-      "tournamentName": "I Liga",
-      "footballDataIds": [],
-      "total": 9,
-      "ok": 0,
-      "okPct": 0,
-      "noLeagueMap": 9,
-      "missingStatsFile": 0,
-      "missingTeams": 0,
-      "notEnoughSamples": 0,
-      "other": 0
-    },
-    {
-      "leagueKey": "Portugal | Liga Portugal",
-      "categoryName": "Portugal",
-      "tournamentName": "Liga Portugal",
-      "footballDataIds": [
-        "P1"
-      ],
-      "total": 9,
-      "ok": 9,
-      "okPct": 100,
-      "noLeagueMap": 0,
-      "missingStatsFile": 0,
-      "missingTeams": 0,
-      "notEnoughSamples": 0,
-      "other": 0
-    },
-    {
-      "leagueKey": "France | Ligue 2",
-      "categoryName": "France",
-      "tournamentName": "Ligue 2",
-      "footballDataIds": [
-        "F2"
-      ],
-      "total": 9,
-      "ok": 9,
-      "okPct": 100,
-      "noLeagueMap": 0,
-      "missingStatsFile": 0,
-      "missingTeams": 0,
-      "notEnoughSamples": 0,
-      "other": 0
-    },
-    {
-      "leagueKey": "Poland | Ekstraklasa",
-      "categoryName": "Poland",
-      "tournamentName": "Ekstraklasa",
-      "footballDataIds": [
-        "POL"
-      ],
-      "total": 9,
-      "ok": 8,
-      "okPct": 88.9,
-      "noLeagueMap": 0,
-      "missingStatsFile": 0,
-      "missingTeams": 1,
-      "notEnoughSamples": 0,
-      "other": 0
-    },
-    {
-      "leagueKey": "Germany | 2. Bundesliga",
-      "categoryName": "Germany",
-      "tournamentName": "2. Bundesliga",
-      "footballDataIds": [
-        "D2"
-      ],
-      "total": 9,
-      "ok": 9,
-      "okPct": 100,
-      "noLeagueMap": 0,
-      "missingStatsFile": 0,
-      "missingTeams": 0,
-      "notEnoughSamples": 0,
-      "other": 0
-    },
-    {
-      "leagueKey": "Turkiye | Super Lig",
-      "categoryName": "Turkiye",
-      "tournamentName": "Super Lig",
-      "footballDataIds": [
-        "T1"
-      ],
-      "total": 9,
-      "ok": 9,
-      "okPct": 100,
-      "noLeagueMap": 0,
-      "missingStatsFile": 0,
-      "missingTeams": 0,
-      "notEnoughSamples": 0,
-      "other": 0
-    },
-    {
-      "leagueKey": "Serbia | Superliga",
-      "categoryName": "Serbia",
-      "tournamentName": "Superliga",
-      "footballDataIds": [
-        "SER"
+        "CHN"
       ],
       "total": 8,
       "ok": 8,
@@ -370,75 +52,11 @@
       "other": 0
     },
     {
-      "leagueKey": "Belgium | Pro League",
-      "categoryName": "Belgium",
-      "tournamentName": "Pro League",
+      "leagueKey": "Finland | Veikkausliiga",
+      "categoryName": "Finland",
+      "tournamentName": "Veikkausliiga",
       "footballDataIds": [
-        "B1"
-      ],
-      "total": 8,
-      "ok": 8,
-      "okPct": 100,
-      "noLeagueMap": 0,
-      "missingStatsFile": 0,
-      "missingTeams": 0,
-      "notEnoughSamples": 0,
-      "other": 0
-    },
-    {
-      "leagueKey": "Sweden | Allsvenskan",
-      "categoryName": "Sweden",
-      "tournamentName": "Allsvenskan",
-      "footballDataIds": [
-        "SWE"
-      ],
-      "total": 8,
-      "ok": 7,
-      "okPct": 87.5,
-      "noLeagueMap": 0,
-      "missingStatsFile": 0,
-      "missingTeams": 1,
-      "notEnoughSamples": 0,
-      "other": 0
-    },
-    {
-      "leagueKey": "Czechia | 1. Liga",
-      "categoryName": "Czechia",
-      "tournamentName": "1. Liga",
-      "footballDataIds": [
-        "CZE"
-      ],
-      "total": 8,
-      "ok": 4,
-      "okPct": 50,
-      "noLeagueMap": 0,
-      "missingStatsFile": 0,
-      "missingTeams": 4,
-      "notEnoughSamples": 0,
-      "other": 0
-    },
-    {
-      "leagueKey": "Norway | Eliteserien",
-      "categoryName": "Norway",
-      "tournamentName": "Eliteserien",
-      "footballDataIds": [
-        "NOR"
-      ],
-      "total": 8,
-      "ok": 8,
-      "okPct": 100,
-      "noLeagueMap": 0,
-      "missingStatsFile": 0,
-      "missingTeams": 0,
-      "notEnoughSamples": 0,
-      "other": 0
-    },
-    {
-      "leagueKey": "Hungary | NB I",
-      "categoryName": "Hungary",
-      "tournamentName": "NB I",
-      "footballDataIds": [
-        "HUN"
+        "FIN"
       ],
       "total": 6,
       "ok": 2,
@@ -450,263 +68,76 @@
       "other": 0
     },
     {
-      "leagueKey": "Slovakia | Superliga",
-      "categoryName": "Slovakia",
-      "tournamentName": "Superliga",
+      "leagueKey": "Scotland | Championship",
+      "categoryName": "Scotland",
+      "tournamentName": "Championship",
       "footballDataIds": [
-        "SVK"
+        "SC1"
       ],
-      "total": 6,
+      "total": 4,
       "ok": 3,
-      "okPct": 50,
-      "noLeagueMap": 0,
-      "missingStatsFile": 0,
-      "missingTeams": 3,
-      "notEnoughSamples": 0,
-      "other": 0
-    },
-    {
-      "leagueKey": "Switzerland | Super League",
-      "categoryName": "Switzerland",
-      "tournamentName": "Super League",
-      "footballDataIds": [
-        "SWZ"
-      ],
-      "total": 6,
-      "ok": 6,
-      "okPct": 100,
-      "noLeagueMap": 0,
-      "missingStatsFile": 0,
-      "missingTeams": 0,
-      "notEnoughSamples": 0,
-      "other": 0
-    },
-    {
-      "leagueKey": "Denmark | Superliga",
-      "categoryName": "Denmark",
-      "tournamentName": "Superliga",
-      "footballDataIds": [
-        "DEN"
-      ],
-      "total": 6,
-      "ok": 1,
-      "okPct": 16.7,
-      "noLeagueMap": 0,
-      "missingStatsFile": 0,
-      "missingTeams": 5,
-      "notEnoughSamples": 0,
-      "other": 0
-    },
-    {
-      "leagueKey": "Croatia | HNL",
-      "categoryName": "Croatia",
-      "tournamentName": "HNL",
-      "footballDataIds": [
-        "CRO"
-      ],
-      "total": 5,
-      "ok": 4,
-      "okPct": 80,
+      "okPct": 75,
       "noLeagueMap": 0,
       "missingStatsFile": 0,
       "missingTeams": 1,
-      "notEnoughSamples": 0,
-      "other": 0
-    },
-    {
-      "leagueKey": "Slovenia | PrvaLiga",
-      "categoryName": "Slovenia",
-      "tournamentName": "PrvaLiga",
-      "footballDataIds": [
-        "SVN"
-      ],
-      "total": 4,
-      "ok": 1,
-      "okPct": 25,
-      "noLeagueMap": 0,
-      "missingStatsFile": 0,
-      "missingTeams": 3,
-      "notEnoughSamples": 0,
-      "other": 0
-    },
-    {
-      "leagueKey": "International Clubs | UEFA Champions League",
-      "categoryName": "International Clubs",
-      "tournamentName": "UEFA Champions League",
-      "footballDataIds": [
-        "UEFA"
-      ],
-      "total": 4,
-      "ok": 4,
-      "okPct": 100,
-      "noLeagueMap": 0,
-      "missingStatsFile": 0,
-      "missingTeams": 0,
-      "notEnoughSamples": 0,
-      "other": 0
-    },
-    {
-      "leagueKey": "International Clubs | UEFA Europa League",
-      "categoryName": "International Clubs",
-      "tournamentName": "UEFA Europa League",
-      "footballDataIds": [
-        "UEFA"
-      ],
-      "total": 4,
-      "ok": 4,
-      "okPct": 100,
-      "noLeagueMap": 0,
-      "missingStatsFile": 0,
-      "missingTeams": 0,
-      "notEnoughSamples": 0,
-      "other": 0
-    },
-    {
-      "leagueKey": "International Clubs | UEFA Conference League",
-      "categoryName": "International Clubs",
-      "tournamentName": "UEFA Conference League",
-      "footballDataIds": [
-        "UEFA"
-      ],
-      "total": 4,
-      "ok": 4,
-      "okPct": 100,
-      "noLeagueMap": 0,
-      "missingStatsFile": 0,
-      "missingTeams": 0,
       "notEnoughSamples": 0,
       "other": 0
     }
   ],
   "topMissingTeams": [
     {
-      "leagueKey": "Bulgaria | Parva Liga",
-      "teamName": "PFC Montana 1921",
+      "leagueKey": "Argentina | Liga Profesional",
+      "teamName": "Argentinos Juniors",
+      "count": 3
+    },
+    {
+      "leagueKey": "Brazil | Brasileiro Serie A",
+      "teamName": "CA Paranaense PR",
       "count": 2
     },
     {
-      "leagueKey": "Bulgaria | Parva Liga",
-      "teamName": "PFC Dobrudzha Dobrich",
+      "leagueKey": "Argentina | Liga Profesional",
+      "teamName": "Deportivo Riestra AFBC",
       "count": 2
     },
     {
-      "leagueKey": "Slovenia | PrvaLiga",
-      "teamName": "Aluminij Kidricevo",
+      "leagueKey": "Argentina | Liga Profesional",
+      "teamName": "Estudiantes de La Plata",
+      "count": 2
+    },
+    {
+      "leagueKey": "Argentina | Liga Profesional",
+      "teamName": "Atletico Tucuman",
+      "count": 2
+    },
+    {
+      "leagueKey": "Argentina | Liga Profesional",
+      "teamName": "Gimnasia y Esgrima La Plata",
+      "count": 2
+    },
+    {
+      "leagueKey": "Finland | Veikkausliiga",
+      "teamName": "Vaasan Palloseura",
       "count": 1
     },
     {
-      "leagueKey": "Hungary | NB I",
-      "teamName": "Zalaegerszeg TE",
+      "leagueKey": "Finland | Veikkausliiga",
+      "teamName": "Seinajoen JK",
       "count": 1
     },
     {
-      "leagueKey": "Czechia | 1. Liga",
-      "teamName": "Dukla Prague",
+      "leagueKey": "Scotland | Championship",
+      "teamName": "Airdrieonians FC",
       "count": 1
     },
     {
-      "leagueKey": "Slovenia | PrvaLiga",
-      "teamName": "Mura Murska Sobota",
+      "leagueKey": "Finland | Veikkausliiga",
+      "teamName": "Turun Palloseura",
       "count": 1
     },
     {
-      "leagueKey": "Slovakia | Superliga",
-      "teamName": "1. FC Tatran Presov",
-      "count": 1
-    },
-    {
-      "leagueKey": "Slovakia | Superliga",
-      "teamName": "FK Kosice",
-      "count": 1
-    },
-    {
-      "leagueKey": "Hungary | NB I",
-      "teamName": "Kazincbarcikai SC",
-      "count": 1
-    },
-    {
-      "leagueKey": "Slovenia | PrvaLiga",
-      "teamName": "Bravo Ljubljana",
-      "count": 1
-    },
-    {
-      "leagueKey": "Denmark | Superliga",
-      "teamName": "Soenderjyske",
-      "count": 1
-    },
-    {
-      "leagueKey": "Slovakia | Superliga",
-      "teamName": "DAC 1904 Dunajska Streda",
-      "count": 1
-    },
-    {
-      "leagueKey": "Czechia | 1. Liga",
-      "teamName": "Bohemians Prague 1905",
-      "count": 1
-    },
-    {
-      "leagueKey": "Czechia | 1. Liga",
-      "teamName": "Slavia Prague",
-      "count": 1
-    },
-    {
-      "leagueKey": "Sweden | Allsvenskan",
-      "teamName": "Orgryte IS",
-      "count": 1
-    },
-    {
-      "leagueKey": "Hungary | NB I",
-      "teamName": "Ferencvarosi Budapest",
-      "count": 1
-    },
-    {
-      "leagueKey": "Denmark | Superliga",
-      "teamName": "FC Copenhagen",
-      "count": 1
-    },
-    {
-      "leagueKey": "Czechia | 1. Liga",
-      "teamName": "Sparta Prague",
-      "count": 1
-    },
-    {
-      "leagueKey": "Hungary | NB I",
-      "teamName": "WKW ETO FC Gyor",
-      "count": 1
-    },
-    {
-      "leagueKey": "Poland | Ekstraklasa",
-      "teamName": "Bruk-Bet Termalica Nieciecza",
-      "count": 1
-    },
-    {
-      "leagueKey": "Denmark | Superliga",
-      "teamName": "Odense Boldklub",
-      "count": 1
-    },
-    {
-      "leagueKey": "Denmark | Superliga",
-      "teamName": "FC Fredericia",
-      "count": 1
-    },
-    {
-      "leagueKey": "Denmark | Superliga",
-      "teamName": "AGF Aarhus",
-      "count": 1
-    },
-    {
-      "leagueKey": "Croatia | HNL",
-      "teamName": "HNK Vukovar 1991",
-      "count": 1
-    },
-    {
-      "leagueKey": "Denmark | Superliga",
-      "teamName": "FC Nordsjaelland",
-      "count": 1
-    },
-    {
-      "leagueKey": "Denmark | Superliga",
-      "teamName": "Broendby IF",
+      "leagueKey": "Finland | Veikkausliiga",
+      "teamName": "Kuopion Palloseura",
       "count": 1
     }
   ]

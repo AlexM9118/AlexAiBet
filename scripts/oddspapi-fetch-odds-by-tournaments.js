@@ -36,6 +36,11 @@ function loadIdsFromConfig(){
   return cfg.tournamentIds.map((id) => String(id).trim()).filter(Boolean);
 }
 
+function readJsonIfExists(filePath){
+  if (!fs.existsSync(filePath)) return null;
+  return JSON.parse(fs.readFileSync(filePath, "utf8"));
+}
+
 async function main(){
   const key = process.env.ODDSPAPI_KEY;
   if (!key) throw new Error("Missing ODDSPAPI_KEY");
@@ -107,18 +112,42 @@ async function main(){
   }
   const merged = Array.from(byFixtureId.values());
 
-  fs.writeFileSync(path.join("data", "oddspapi_odds.json"), JSON.stringify(merged, null, 2), "utf8");
+  let finalFixtures = merged;
+  let finalTournamentIds = ids;
+
+  const isPartialRefresh = envIds.length > 0 && cfgIds.length > 0 && ids.length < cfgIds.length;
+  if (isPartialRefresh){
+    const existingFixtures = readJsonIfExists(path.join("data", "oddspapi_odds.json"));
+    if (Array.isArray(existingFixtures) && existingFixtures.length){
+      const refreshIds = new Set(ids.map(String));
+      const carriedFixtures = existingFixtures.filter((fixture) => !refreshIds.has(String(fixture?.tournamentId ?? "")));
+      const byFixtureIdMerged = new Map();
+      for (const fixture of carriedFixtures){
+        if (!fixture || !fixture.fixtureId) continue;
+        byFixtureIdMerged.set(String(fixture.fixtureId), fixture);
+      }
+      for (const fixture of merged){
+        if (!fixture || !fixture.fixtureId) continue;
+        byFixtureIdMerged.set(String(fixture.fixtureId), fixture);
+      }
+      finalFixtures = Array.from(byFixtureIdMerged.values());
+      finalTournamentIds = cfgIds;
+      console.log(`Partial refresh detected. Keeping ${carriedFixtures.length} fixtures from existing snapshot and replacing ${merged.length} fetched fixtures.`);
+    }
+  }
+
+  fs.writeFileSync(path.join("data", "oddspapi_odds.json"), JSON.stringify(finalFixtures, null, 2), "utf8");
   fs.writeFileSync(path.join("data", "oddspapi_odds_index.json"), JSON.stringify({
     generatedAtUTC: new Date().toISOString(),
     bookmaker,
     oddsFormat,
     verbosity,
-    tournamentIds: ids,
+    tournamentIds: finalTournamentIds,
     batches: batchSummaries,
-    fixturesTotal: merged.length
+    fixturesTotal: finalFixtures.length
   }, null, 2), "utf8");
 
-  console.log(`Saved data/oddspapi_odds.json fixtures=${merged.length}`);
+  console.log(`Saved data/oddspapi_odds.json fixtures=${finalFixtures.length}`);
   console.log(`Saved data/oddspapi_odds_index.json batches=${batches.length}`);
 }
 
