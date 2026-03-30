@@ -1,7 +1,7 @@
 {
-  "generatedAtUTC": "2026-03-30T19:24:04.296Z",
+  "generatedAtUTC": "2026-03-30T19:27:35.424Z",
   "lookback": 5,
-  "aliasesUsed": 355,
+  "aliasesUsed": 356,
   "byFixtureId": {
     "id1000005461623746": {
       "footballDataId": "SP2",
@@ -5074,11 +5074,11 @@
       "homeRaw": "Moreirense FC",
       "awayRaw": "SC Braga",
       "home": "Moreirense",
-      "away": "Sporting Braga",
+      "away": "Sp Braga",
       "homePicked": "Moreirense",
-      "awayPicked": null,
+      "awayPicked": "Sp Braga",
       "homePickMethod": "raw",
-      "awayPickMethod": null,
+      "awayPickMethod": "raw",
       "homeStats": {
         "homeMatches": 5,
         "awayMatches": 5,
@@ -5095,8 +5095,23 @@
         "awayYCFor": 2.6,
         "awayYCAgainst": 1.8
       },
-      "awayStats": null,
-      "note": "away team not found in stats: \"Sporting Braga\""
+      "awayStats": {
+        "homeMatches": 5,
+        "awayMatches": 5,
+        "homeGF": 2.8,
+        "homeGA": 1.2,
+        "awayGF": 2.2,
+        "awayGA": 1.2,
+        "homeCornersFor": 5,
+        "homeCornersAgainst": 2.6,
+        "awayCornersFor": 5.6,
+        "awayCornersAgainst": 3,
+        "homeYCFor": 2.4,
+        "homeYCAgainst": 2.8,
+        "awayYCFor": 1.8,
+        "awayYCAgainst": 1.8
+      },
+      "note": null
     },
     "id1000023861731434": {
       "footballDataId": "P1",
@@ -11146,30 +11161,15 @@
       "tournamentName": "UEFA Europa League",
       "homeRaw": "SC Braga",
       "awayRaw": "Real Betis Seville",
-      "home": "Sporting Braga",
+      "home": "Sp Braga",
       "away": "Betis",
-      "homePicked": "Sporting Braga",
+      "homePicked": null,
       "awayPicked": null,
-      "homePickMethod": "raw",
+      "homePickMethod": null,
       "awayPickMethod": null,
-      "homeStats": {
-        "homeMatches": 5,
-        "awayMatches": 5,
-        "homeGF": 1.8,
-        "homeGA": 1.4,
-        "awayGF": 1,
-        "awayGA": 2.2,
-        "homeCornersFor": 0,
-        "homeCornersAgainst": 0,
-        "awayCornersFor": 0,
-        "awayCornersAgainst": 0,
-        "homeYCFor": 0,
-        "homeYCAgainst": 0,
-        "awayYCFor": 0,
-        "awayYCAgainst": 0
-      },
+      "homeStats": null,
       "awayStats": null,
-      "note": "away team not found in stats: \"Betis\""
+      "note": "home team not found in stats: \"Sp Braga\" | away team not found in stats: \"Betis\""
     },
     "id1000024763465927": {
       "footballDataId": "BUL",
