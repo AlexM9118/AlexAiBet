@@ -659,34 +659,75 @@ function renderDetailHistory(entry) {
   const hs = entry?.homeStats;
   const as = entry?.awayStats;
   const sourceNote = entry?.footballDataId ? `Competitie sursa: ${entry.footballDataId}` : "Date istorice partiale pentru acest meci.";
+  const formatHistoryValue = (value, digits = 2) => Number.isFinite(Number(value)) ? fmtNum(value, digits) : "—";
+  const hasCornersData = (stats, side) => {
+    if (!stats) return false;
+    return side === "home"
+      ? [stats.homeCornersFor, stats.homeCornersAgainst, stats.awayCornersFor, stats.awayCornersAgainst].some((v) => Number(v) > 0)
+      : [stats.awayCornersFor, stats.awayCornersAgainst, stats.homeCornersFor, stats.homeCornersAgainst].some((v) => Number(v) > 0);
+  };
+  const hasCardsData = (stats, side) => {
+    if (!stats) return false;
+    return side === "home"
+      ? [stats.homeYCFor, stats.homeYCAgainst, stats.awayYCFor, stats.awayYCAgainst].some((v) => Number(v) > 0)
+      : [stats.awayYCFor, stats.awayYCAgainst, stats.homeYCFor, stats.homeYCAgainst].some((v) => Number(v) > 0);
+  };
+  const renderHistoryLine = (containerId, stats, side) => {
+    const box = el(containerId);
+    if (!box) return;
+    if (!stats) {
+      box.innerHTML = "";
+      return;
+    }
+    const matchCount = side === "home" ? stats.homeMatches : stats.awayMatches;
+    const goalsFor = side === "home" ? stats.homeGF : stats.awayGF;
+    const goalsAgainst = side === "home" ? stats.homeGA : stats.awayGA;
+    const cornersFor = side === "home" ? stats.homeCornersFor : stats.awayCornersFor;
+    const cardsFor = side === "home" ? stats.homeYCFor : stats.awayYCFor;
+    const cornersValue = hasCornersData(stats, side) ? formatHistoryValue(cornersFor, 2) : "—";
+    const cardsValue = hasCardsData(stats, side) ? formatHistoryValue(cardsFor, 2) : "—";
+
+    box.innerHTML = `
+      <div class="history-inline">
+        <div class="history-inline-cell">
+          <span class="history-inline-k">Ult. 5</span>
+          <span class="history-inline-v">${escapeHtml(String(matchCount ?? "—"))}</span>
+        </div>
+        <div class="history-inline-cell">
+          <span class="history-inline-k">GM</span>
+          <span class="history-inline-v">${escapeHtml(formatHistoryValue(goalsFor, 2))}</span>
+        </div>
+        <div class="history-inline-cell">
+          <span class="history-inline-k">GP</span>
+          <span class="history-inline-v">${escapeHtml(formatHistoryValue(goalsAgainst, 2))}</span>
+        </div>
+        <div class="history-inline-cell">
+          <span class="history-inline-k">Corn</span>
+          <span class="history-inline-v">${escapeHtml(cornersValue)}</span>
+        </div>
+        <div class="history-inline-cell">
+          <span class="history-inline-k">Cart</span>
+          <span class="history-inline-v">${escapeHtml(cardsValue)}</span>
+        </div>
+      </div>
+    `;
+  };
 
   if (hs) {
-    renderRows("histHome", [
-      { label: `Meciuri acasa (ultimele ${HIST.lookback || 5})`, value: String(hs.homeMatches ?? "—") },
-      { label: "Goluri marcate", value: fmtNum(hs.homeGF, 2) },
-      { label: "Goluri primite", value: fmtNum(hs.homeGA, 2) },
-      { label: "Cornere create", value: fmtNum(hs.homeCornersFor, 2) },
-      { label: "Cartonase primite", value: fmtNum(hs.homeYCFor, 2) }
-    ]);
+    renderHistoryLine("histHome", hs, "home");
     el("histHomeNote").textContent = as ? sourceNote : `${sourceNote} • Forma gazdelor este disponibila, dar lipseste istoricul complet al oaspetilor.`;
   } else {
-    renderRows("histHome", []);
+    renderHistoryLine("histHome", null, "home");
     el("histHomeNote").textContent = as
       ? "Forma gazdelor nu are inca suficient istoric valid in sursa curenta."
       : "Istoricul este partial pentru ambele echipe in sursa curenta.";
   }
 
   if (as) {
-    renderRows("histAway", [
-      { label: `Meciuri in deplasare (ultimele ${HIST.lookback || 5})`, value: String(as.awayMatches ?? "—") },
-      { label: "Goluri marcate", value: fmtNum(as.awayGF, 2) },
-      { label: "Goluri primite", value: fmtNum(as.awayGA, 2) },
-      { label: "Cornere create", value: fmtNum(as.awayCornersFor, 2) },
-      { label: "Cartonase primite", value: fmtNum(as.awayYCFor, 2) }
-    ]);
+    renderHistoryLine("histAway", as, "away");
     el("histAwayNote").textContent = hs ? sourceNote : `${sourceNote} • Forma oaspetilor este disponibila, dar lipseste istoricul complet al gazdelor.`;
   } else {
-    renderRows("histAway", []);
+    renderHistoryLine("histAway", null, "away");
     el("histAwayNote").textContent = hs
       ? "Forma oaspetilor nu are inca suficient istoric valid in sursa curenta."
       : "Istoricul este partial pentru ambele echipe in sursa curenta.";
