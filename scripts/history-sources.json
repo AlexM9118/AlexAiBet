@@ -6,6 +6,9 @@
 
     { "id": "SC0", "name": "Scotland - Premiership",           "type": "csv", "url": "https://www.football-data.co.uk/mmz4281/2526/SC0.csv" },
     { "id": "SC1", "name": "Scotland - Division 1",            "type": "csv", "url": "https://www.football-data.co.uk/mmz4281/2526/SC1.csv" },
+    { "id": "ARG", "name": "Argentina - Liga Profesional",     "type": "csv", "url": "https://www.football-data.co.uk/new/ARG.csv" },
+    { "id": "BRA", "name": "Brazil - Brasileiro Serie A",      "type": "csv", "url": "https://www.football-data.co.uk/new/BRA.csv" },
+    { "id": "FIN", "name": "Finland - Veikkausliiga",          "type": "csv", "url": "https://www.football-data.co.uk/new/FIN.csv" },
 
     { "id": "D1",  "name": "Germany - Bundesliga",             "type": "csv", "url": "https://www.football-data.co.uk/mmz4281/2526/D1.csv" },
     { "id": "D2",  "name": "Germany - Bundesliga 2",           "type": "csv", "url": "https://www.football-data.co.uk/mmz4281/2526/D2.csv" },
@@ -89,6 +92,11 @@
       "https://raw.githubusercontent.com/openfootball/champions-league/master/2024-25/el.txt",
       "https://raw.githubusercontent.com/openfootball/champions-league/master/2024-25/conf.txt",
       "https://raw.githubusercontent.com/openfootball/champions-league/master/2025-26/cl.txt"
+    ] },
+    { "id": "WC", "name": "International - World Cup",         "type": "openfootball", "urls": [
+      "https://raw.githubusercontent.com/openfootball/worldcup/master/2014--brazil/cup.txt",
+      "https://raw.githubusercontent.com/openfootball/worldcup/master/2018--russia/cup.txt",
+      "https://raw.githubusercontent.com/openfootball/worldcup/master/2022--qatar/cup.txt"
     ] },
     { "id": "USA", "name": "USA - MLS",                        "type": "csv", "url": "https://www.football-data.co.uk/new/USA.csv" }
   ]

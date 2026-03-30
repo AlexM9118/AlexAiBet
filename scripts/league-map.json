@@ -2,6 +2,9 @@
   "mappings": [
     { "match": { "categoryName": "England",  "tournamentName": "Premier League" }, "footballDataId": "E0" },
     { "match": { "categoryName": "England",  "tournamentName": "Championship" },   "footballDataId": "E1" },
+    { "match": { "categoryName": "Argentina", "tournamentName": "Liga Profesional" }, "footballDataId": "ARG" },
+    { "match": { "categoryName": "Brazil",    "tournamentName": "Brasileiro Serie A" }, "footballDataId": "BRA" },
+    { "match": { "categoryName": "Finland",   "tournamentName": "Veikkausliiga" }, "footballDataId": "FIN" },
 
     { "match": { "categoryName": "France",   "tournamentName": "Ligue 1" },        "footballDataId": "F1" },
     { "match": { "categoryName": "France",   "tournamentName": "Ligue 2" },        "footballDataId": "F2" },
@@ -28,6 +31,7 @@
 
     { "match": { "categoryName": "Scotland", "tournamentName": "Premiership" },    "footballDataId": "SC0" },
     { "match": { "categoryName": "Scotland", "tournamentName": "Division 1" },     "footballDataId": "SC1" },
+    { "match": { "categoryName": "Scotland", "tournamentName": "Championship" },   "footballDataId": "SC1" },
 
     { "match": { "categoryName": "Romania",  "tournamentName": "Superliga" },      "footballDataId": "ROU" },
     { "match": { "categoryName": "Bulgaria", "tournamentName": "Parva Liga" },     "footballDataId": "BUL" },
@@ -48,6 +52,7 @@
     { "match": { "categoryName": "Russia",   "tournamentName": "Premier League" }, "footballDataId": "RUS" },
     { "match": { "categoryName": "Sweden",   "tournamentName": "Allsvenskan" },    "footballDataId": "SWE" },
     { "match": { "categoryName": "Switzerland", "tournamentName": "Super League" }, "footballDataId": "SWZ" },
+    { "match": { "categoryName": "International", "tournamentName": "World Cup" }, "footballDataId": "WC" },
     { "match": { "categoryName": "International Clubs", "tournamentName": "UEFA Champions League" }, "footballDataId": "UEFA" },
     { "match": { "categoryName": "International Clubs", "tournamentName": "UEFA Europa League" },    "footballDataId": "UEFA" },
     { "match": { "categoryName": "International Clubs", "tournamentName": "UEFA Conference League" }, "footballDataId": "UEFA" },
