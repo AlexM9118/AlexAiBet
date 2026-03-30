@@ -1117,15 +1117,19 @@ select option:checked{
   padding:8px;
   border-radius:14px;
   border:1px solid rgba(255,255,255,0.05);
-  background:linear-gradient(180deg, rgba(13, 26, 22, 0.72), rgba(8, 15, 18, 0.36));
+  background:linear-gradient(180deg, rgba(16, 22, 29, 0.82), rgba(8, 12, 18, 0.42));
 }
 
 .history-inline-home{
-  box-shadow:inset 0 1px 0 rgba(104, 255, 188, 0.08);
+  border-color:rgba(84, 183, 213, 0.16);
+  background:linear-gradient(180deg, rgba(14, 44, 59, 0.78), rgba(8, 17, 27, 0.48));
+  box-shadow:inset 0 1px 0 rgba(119, 215, 255, 0.12);
 }
 
 .history-inline-away{
-  box-shadow:inset 0 1px 0 rgba(118, 214, 255, 0.08);
+  border-color:rgba(212, 158, 104, 0.16);
+  background:linear-gradient(180deg, rgba(54, 33, 17, 0.78), rgba(14, 12, 14, 0.48));
+  box-shadow:inset 0 1px 0 rgba(248, 198, 136, 0.1);
 }
 
 .history-inline-cell{
