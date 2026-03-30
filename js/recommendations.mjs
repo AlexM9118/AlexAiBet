@@ -224,8 +224,9 @@ function scoreMarketFit(candidate) {
   }
 
   if (candidate.market === "BTTS") {
-    if (candidate.bookOdds >= 1.24 && candidate.bookOdds <= 1.48) score += 0.18;
-    if (candidate.bookOdds > 1.48 && candidate.bookOdds <= 1.72 && candidate.p >= 0.58) score += 0.14;
+    if (candidate.bookOdds >= 1.24 && candidate.bookOdds <= 1.48) score += 0.22;
+    if (candidate.bookOdds > 1.48 && candidate.bookOdds <= 1.72 && candidate.p >= 0.58) score += 0.18;
+    if (candidate.p >= 0.6 && candidate.edge >= 0.02) score += 0.12;
     if (candidate.sel === "NO" && candidate.bookOdds < 1.22) score -= 0.1;
     return score;
   }
@@ -241,10 +242,13 @@ function scoreMarketFit(candidate) {
     if (candidate.sel === "UNDER" && line === 3.5 && candidate.bookOdds < 1.30) score -= 0.34;
     if (candidate.sel === "UNDER" && line === 3.5 && candidate.bookOdds >= 1.30 && candidate.bookOdds < 1.38) score -= 0.22;
     if (candidate.sel === "UNDER" && line === 3.5 && candidate.bookOdds >= 1.38 && candidate.bookOdds <= 1.48) score -= 0.1;
-    if (candidate.sel === "UNDER" && line === 3.5) score -= 0.06;
+    if (candidate.sel === "UNDER" && line === 3.5) score -= 0.18;
     if (candidate.sel === "OVER" && line <= 1.5 && candidate.bookOdds < 1.26) score -= 0.34;
     if (candidate.sel === "OVER" && line <= 1.5 && candidate.bookOdds >= 1.26 && candidate.bookOdds < 1.32) score -= 0.16;
-    if (candidate.sel === "OVER" && line <= 1.5 && candidate.bookOdds >= 1.32 && candidate.bookOdds <= 1.42) score -= 0.02;
+    if (candidate.sel === "OVER" && line <= 1.5 && candidate.bookOdds >= 1.32 && candidate.bookOdds <= 1.42) score -= 0.08;
+    if (candidate.sel === "OVER" && line <= 1.5) score -= 0.08;
+    if (candidate.sel === "OVER" && line === 2.5 && candidate.bookOdds >= 1.28 && candidate.bookOdds <= 1.56) score += 0.12;
+    if (candidate.sel === "UNDER" && line === 2.5 && candidate.bookOdds >= 1.34 && candidate.bookOdds <= 1.52) score += 0.08;
     return score;
   }
 
@@ -315,7 +319,7 @@ function chooseDisplayedRecommendation(scored) {
     candidate &&
     marketFamily(candidate) !== familyOfBest &&
     candidate.bookOdds >= 1.26 &&
-    score >= ordered[0].score - 0.3
+    score >= ordered[0].score - 0.22
   ))?.candidate || null;
 
   if (familyAlt && familyOfBest === "GOALS" && ["1.5", "3.5", "4.5"].includes(String(goalsLine))) {
@@ -327,7 +331,7 @@ function chooseDisplayedRecommendation(scored) {
     marketFamily(candidate) === "GOALS" &&
     candidate.market === "Goals 2.5" &&
     candidate.bookOdds >= 1.28 &&
-    score >= ordered[0].score - 0.24
+    score >= ordered[0].score - 0.18
   ))?.candidate || null;
 
   if (balancedGoalsAlt && familyOfBest === "GOALS" && ["1.5", "3.5", "4.5"].includes(String(goalsLine))) {
@@ -338,7 +342,7 @@ function chooseDisplayedRecommendation(scored) {
     candidate &&
     candidateLineLabel(candidate) !== lineOfBest &&
     candidate.bookOdds >= 1.28 &&
-    score >= ordered[0].score - 0.2
+    score >= ordered[0].score - 0.16
   ))?.candidate || null;
 
   if (
@@ -634,7 +638,9 @@ function evaluateTicket(picks, config) {
   const familyPenalty = Array.from(familyCounts.values()).reduce((sum, count) => sum + Math.max(0, count - 2) * 0.38, 0);
   const marketPenalty = Array.from(marketCounts.values()).reduce((sum, count) => sum + Math.max(0, count - 2) * 0.52, 0);
   const underPenalty = picks.filter((pick) => String(pick.sel) === "UNDER" && marketFamily(pick) === "GOALS").length >= Math.max(3, Math.ceil(picks.length * 0.7)) ? 0.55 : 0;
-  const score = closeness * 12 + (1 - avgP) * 2.4 + (1 - combinedProbability) * 0.8 + preferredRangePenalty + oddsPenalty + familyPenalty + marketPenalty + underPenalty - (inTargetWindow ? 0.6 : 0);
+  const bttsBonus = picks.filter((pick) => marketFamily(pick) === "BTTS").length ? 0.16 : 0;
+  const midGoalsBonus = picks.filter((pick) => pick.market === "Goals 2.5").length ? 0.12 : 0;
+  const score = closeness * 12 + (1 - avgP) * 2.4 + (1 - combinedProbability) * 0.8 + preferredRangePenalty + oddsPenalty + familyPenalty + marketPenalty + underPenalty - bttsBonus - midGoalsBonus - (inTargetWindow ? 0.6 : 0);
   return { picks: picks.slice(), target, totalOdds, combinedProbability, avgP, closeness, score };
 }
 
@@ -697,6 +703,9 @@ export function buildDisplayedTickets(matches, getHistEntry) {
 
   for (const config of TICKET_CONFIGS) {
     let ticket = buildTicketForTarget(matches, getHistEntry, config, { excludedFixtureIds: usedFixtureIds, excludedSelectionKeys: usedSelectionKeys });
+    if (!ticket) {
+      ticket = buildTicketForTarget(matches, getHistEntry, config, { excludedSelectionKeys: usedSelectionKeys });
+    }
     if (!ticket) {
       ticket = buildTicketForTarget(matches, getHistEntry, config);
     }
