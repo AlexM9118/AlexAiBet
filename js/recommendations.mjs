@@ -262,6 +262,48 @@ function candidateScore(candidate) {
   return profile.baseBonus + marketFit + probabilityBoost + edgeBoost - oddsDistancePenalty - lowOddsPenalty - highOddsPenalty - weakProbPenalty - genericLowOddsPenalty - genericOddsDistance;
 }
 
+function candidateLineLabel(candidate) {
+  if (candidate.market === "BTTS" || candidate.market === "1X2") return candidate.market;
+  return `${candidate.market}|${candidate.sel}`;
+}
+
+function chooseDisplayedRecommendation(scored) {
+  const ordered = (scored || []).filter(Boolean);
+  const best = ordered[0]?.candidate || null;
+  if (!best) return null;
+
+  const familyOfBest = marketFamily(best);
+  const lineOfBest = candidateLineLabel(best);
+
+  const familyAlt = ordered.find(({ candidate, score }) => (
+    candidate &&
+    marketFamily(candidate) !== familyOfBest &&
+    candidate.bookOdds >= 1.26 &&
+    score >= ordered[0].score - 0.28
+  ))?.candidate || null;
+
+  if (familyAlt && familyOfBest === "GOALS") {
+    return familyAlt;
+  }
+
+  const lineAlt = ordered.find(({ candidate, score }) => (
+    candidate &&
+    candidateLineLabel(candidate) !== lineOfBest &&
+    candidate.bookOdds >= 1.28 &&
+    score >= ordered[0].score - 0.16
+  ))?.candidate || null;
+
+  if (
+    lineAlt &&
+    familyOfBest === "GOALS" &&
+    (best.market === "Goals 1.5" || best.market === "Goals 3.5" || best.market === "Goals 4.5")
+  ) {
+    return lineAlt;
+  }
+
+  return best;
+}
+
 export function getRecommendationConfidence(candidate) {
   if (!candidate) return { label: "Redusa", tone: "muted" };
   if (candidate.source === "odds") {
@@ -453,7 +495,7 @@ export function buildMatchRecommendation(match, getHistEntry) {
     })
     .sort((a, b) => b.score - a.score || b.candidate.p - a.candidate.p || b.candidate.edge - a.candidate.edge);
 
-  const best = scored[0]?.candidate || scoringPool[0] || candidates[0];
+  const best = chooseDisplayedRecommendation(scored) || scored[0]?.candidate || scoringPool[0] || candidates[0];
   if (!best) return null;
   best.confidence = getRecommendationConfidence(best);
   return best;

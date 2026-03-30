@@ -401,9 +401,9 @@ input[type="date"]::-webkit-calendar-picker-indicator{
 
 .league-trigger{
   width:100%;
-  display:flex;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
   align-items:center;
-  justify-content:space-between;
   gap:14px;
   padding:13px 16px;
   border:none;
@@ -425,18 +425,21 @@ input[type="date"]::-webkit-calendar-picker-indicator{
   font-size:14px;
   font-weight:800;
   color:#fff3f4;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  line-height:1.3;
 }
 
 .league-trigger-meta{
   margin-top:3px;
   font-size:11px;
   color:#d6b3b6;
+  line-height:1.35;
 }
 
 .league-trigger-icon{
+  align-self:center;
+  justify-self:end;
   flex:0 0 14px;
   width:14px;
   height:14px;
