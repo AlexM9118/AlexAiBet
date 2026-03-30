@@ -10,6 +10,7 @@ on:
         type: choice
         options:
           - bookmakers
+          - markets
           - tournaments
           - odds
           - build_ui
@@ -79,6 +80,13 @@ jobs:
         env:
           ODDSPAPI_KEY: ${{ secrets.ODDSPAPI_KEY }}
         run: node scripts/oddspapi-fetch-tournaments.js
+
+      - name: Run markets
+        if: ${{ inputs.job == 'markets' }}
+        env:
+          ODDSPAPI_KEY: ${{ secrets.ODDSPAPI_KEY }}
+          LANGUAGE: "en"
+        run: node scripts/oddspapi-fetch-markets.js
 
       - name: Run odds-by-tournaments (batched)
         if: ${{ inputs.job == 'odds' }}
@@ -160,6 +168,7 @@ jobs:
 
           # bookmakers / tournaments
           git add data/oddspapi_bookmakers_raw.txt data/oddspapi_bookmakers.json || true
+          git add data/oddspapi_markets_raw.txt data/oddspapi_markets.json || true
           git add data/oddspapi_tournaments_raw.txt data/oddspapi_tournaments.json || true
 
           # odds outputs
