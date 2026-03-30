@@ -15,6 +15,7 @@ import {
 import { rowsFromFeaturedMarket, estGoals, estCorners, estCards } from "./js/models.mjs";
 import {
   buildMatchRecommendation,
+  getCandidatesForMatch,
   buildTwoWayRows,
   buildConfidenceModel,
   getRiskProfile,
@@ -78,6 +79,36 @@ function getMatchSummary(fixtureId) {
 
 function getMatchRecommendation(fixtureId) {
   return UI.matchRecommendations.get(String(fixtureId)) || null;
+}
+
+function marketFamilyLabel(recommendation) {
+  if (!recommendation) return "N/A";
+  if (recommendation.market === "1X2") return "1X2";
+  if (recommendation.market === "BTTS") return "BTTS";
+  if (String(recommendation.market).startsWith("Goals ")) return "Goluri";
+  if (String(recommendation.market).startsWith("Corners ")) return "Cornere";
+  if (String(recommendation.market).startsWith("Cards ")) return "Cartonase";
+  return recommendation.market;
+}
+
+function buildVarietyModel(matches) {
+  const recommendations = matches.map((match) => getMatchRecommendation(match.fixtureId)).filter(Boolean);
+  if (!recommendations.length) return { label: "Fara date", copy: "Momentan nu exista suficiente recomandari pentru a evalua varietatea zilei." };
+  const counts = new Map();
+  for (const recommendation of recommendations) {
+    const family = marketFamilyLabel(recommendation);
+    counts.set(family, (counts.get(family) || 0) + 1);
+  }
+  const families = counts.size;
+  const total = recommendations.length || 1;
+  const largestShare = Math.max(...counts.values()) / total;
+  const label = families >= 4 && largestShare <= 0.55
+    ? "Varietate ridicata"
+    : families >= 3 && largestShare <= 0.72
+      ? "Varietate buna"
+      : "Varietate limitata";
+  const copy = `${label} • ${families} tipuri de piete in recomandari. Dominanta maxima: ${Math.round(largestShare * 100)}%.`;
+  return { label, copy };
 }
 
 function pickDefaultDay(days) {
@@ -289,6 +320,8 @@ function renderMatchesList() {
     : (list.length
       ? `${leagueLabel} • toate meciurile viitoare`
       : `${leagueLabel} • nicio partida viitoare in filtrul curent`);
+  const variety = buildVarietyModel(list);
+  el("varietySubtitle").textContent = variety.copy;
 
   if (!list.length) {
     box.innerHTML = `<div class="reco-empty">Nu exista meciuri pentru combinatia de data si liga selectata.</div>`;
@@ -377,6 +410,34 @@ function renderConfidence(entry) {
   }
 }
 
+function renderExplainability(match, recommendation) {
+  const explainRows = [];
+  const altRows = [];
+
+  if (recommendation) {
+    explainRows.push({ label: "Piata aleasa", value: `${recommendation.displayLabel} • ${marketFamilyLabel(recommendation)}` });
+    explainRows.push({ label: "Cota / probabilitate", value: `${fmtOdds(recommendation.bookOdds)} • ${pctRounded(recommendation.p)}` });
+    explainRows.push({ label: "Sursa principala", value: recommendation.source === "history" ? "Istoric + cote curente" : "Structura cotelor curente" });
+    if (Number.isFinite(recommendation.marketProbability)) {
+      explainRows.push({ label: "Prob. piata", value: pctRounded(recommendation.marketProbability) });
+    }
+  }
+
+  const alternatives = getCandidatesForMatch(match, getHistEntry, 0.52)
+    .filter((candidate) => !recommendation || `${candidate.market}|${candidate.sel}` !== `${recommendation.market}|${recommendation.sel}`)
+    .slice(0, 3);
+
+  for (const candidate of alternatives) {
+    altRows.push({
+      label: candidate.displayLabel,
+      value: `${fmtOdds(candidate.bookOdds)} • ${pctRounded(candidate.p)}`
+    });
+  }
+
+  renderRows("explainRows", explainRows);
+  renderRows("altPickRows", altRows);
+}
+
 function renderPrimaryPick(match, recommendation) {
   if (!recommendation) {
     el("primaryPick").textContent = "Fara recomandare principala";
@@ -458,6 +519,7 @@ async function loadAndRenderMatch() {
   setCardVisibility("cardsCard", cardsRows, "cardsHint", cards ? `Media estimata ${cards.lt.toFixed(2)} / meci` : "");
 
   renderConfidence(entry);
+  renderExplainability(summary || { fixtureId: current.fixtureId }, recommendation);
   renderDetailHistory(entry);
 }
 

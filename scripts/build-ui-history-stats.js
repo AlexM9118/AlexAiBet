@@ -69,15 +69,32 @@ function pickTeamStatsMulti(statsFile, rawName){
   const teamStats = statsFile?.teamStats || {};
   if (!rawName) return null;
 
-  // 1) exact/raw (after aliases), no normalization
-  const a1 = pickTeamStatsExactOrCI(teamStats, rawName);
-  if (a1) return { stats: a1, pickedName: rawName, method: "raw" };
+  const attempts = [];
+  const pushAttempt = (value, method) => {
+    const v = String(value || "").trim();
+    if (!v) return;
+    if (attempts.some((item) => lc(item.value) === lc(v))) return;
+    attempts.push({ value: v, method });
+  };
 
-  // 2) normalized generic
-  const n = normalizeTeamGeneric(rawName);
-  if (n && n !== rawName){
-    const a2 = pickTeamStatsExactOrCI(teamStats, n);
-    if (a2) return { stats: a2, pickedName: n, method: "normalized" };
+  pushAttempt(rawName, "raw");
+  const normalizedRaw = normalizeTeamGeneric(rawName);
+  if (normalizedRaw && normalizedRaw !== rawName) {
+    pushAttempt(normalizedRaw, "normalized");
+  }
+
+  const originalRaw = arguments[2];
+  if (originalRaw && String(originalRaw).trim() && lc(originalRaw) !== lc(rawName)) {
+    pushAttempt(originalRaw, "original");
+    const normalizedOriginal = normalizeTeamGeneric(originalRaw);
+    if (normalizedOriginal && normalizedOriginal !== originalRaw) {
+      pushAttempt(normalizedOriginal, "original-normalized");
+    }
+  }
+
+  for (const attempt of attempts) {
+    const found = pickTeamStatsExactOrCI(teamStats, attempt.value);
+    if (found) return { stats: found, pickedName: attempt.value, method: attempt.method };
   }
 
   return null;
@@ -154,8 +171,8 @@ function main(){
       continue;
     }
 
-    const hPick = pickTeamStatsMulti(statsFile, homeAliased);
-    const aPick = pickTeamStatsMulti(statsFile, awayAliased);
+    const hPick = pickTeamStatsMulti(statsFile, homeAliased, homeRaw);
+    const aPick = pickTeamStatsMulti(statsFile, awayAliased, awayRaw);
 
     let note = null;
     if (!hPick || !aPick){

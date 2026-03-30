@@ -20,6 +20,28 @@ function getBookSelection(match, market, sel) {
   return match.selectionIndex[buildSelectionKeyFromPick({ market, sel })] || null;
 }
 
+function getNormalizedMarketProbability(match, market, sel) {
+  const selection = getBookSelection(match, market, sel);
+  if (!selection?.price) return null;
+
+  let outcomes = [];
+  if (market === "1X2") {
+    outcomes = match?.featuredMarkets?.ft1x2?.outcomes || [];
+  } else if (market === "BTTS") {
+    outcomes = match?.featuredMarkets?.btts?.outcomes || [];
+  } else {
+    const over = getBookSelection(match, market, "OVER");
+    const under = getBookSelection(match, market, "UNDER");
+    outcomes = [
+      over ? { key: "OVER", price: over.price } : null,
+      under ? { key: "UNDER", price: under.price } : null
+    ].filter(Boolean);
+  }
+
+  const normalized = normalizedProbabilities(outcomes);
+  return normalized.find((outcome) => String(outcome.key) === String(sel))?.probability ?? null;
+}
+
 export function pickDisplayLabel(pick) {
   if (pick.market === "1X2") {
     return { HOME: "Victorie gazde", DRAW: "Egal", AWAY: "Victorie oaspeti" }[pick.sel] || "1X2";
@@ -77,6 +99,7 @@ function buildCandidate(match, market, sel, probability) {
   const bookSelection = getBookSelection(match, market, sel);
   const bookOdds = Number(bookSelection?.price);
   if (!Number.isFinite(bookOdds) || bookOdds <= 1) return null;
+  const marketProbability = getNormalizedMarketProbability(match, market, sel);
   return {
     fixtureId: String(match.fixtureId),
     match: `${match.home} vs ${match.away}`,
@@ -85,6 +108,7 @@ function buildCandidate(match, market, sel, probability) {
     market,
     sel,
     p: Number(probability),
+    marketProbability: Number.isFinite(marketProbability) ? Number(marketProbability) : null,
     bookOdds,
     fairOdds: oddsFromProb(probability),
     edge: Number(probability) - (1 / bookOdds),
@@ -101,6 +125,7 @@ function buildFallbackCandidate(match, market, sel, probability, reason) {
   const bookSelection = getBookSelection(match, market, sel);
   const bookOdds = Number(bookSelection?.price);
   if (!Number.isFinite(bookOdds) || bookOdds <= 1) return null;
+  const marketProbability = getNormalizedMarketProbability(match, market, sel);
   return {
     fixtureId: String(match.fixtureId),
     match: `${match.home} vs ${match.away}`,
@@ -109,6 +134,7 @@ function buildFallbackCandidate(match, market, sel, probability, reason) {
     market,
     sel,
     p: Number(probability),
+    marketProbability: Number.isFinite(marketProbability) ? Number(marketProbability) : null,
     bookOdds,
     fairOdds: oddsFromProb(probability),
     edge: 0,
@@ -259,7 +285,11 @@ function candidateScore(candidate) {
   const genericLowOddsPenalty = candidate.bookOdds < MIN_MATCH_RECO_ODDS ? (MIN_MATCH_RECO_ODDS - candidate.bookOdds) * 1.8 : 0;
   const genericOddsDistance = Math.abs(candidate.bookOdds - IDEAL_MATCH_RECO_ODDS) * 0.35;
   const marketFit = scoreMarketFit(candidate);
-  return profile.baseBonus + marketFit + probabilityBoost + edgeBoost - oddsDistancePenalty - lowOddsPenalty - highOddsPenalty - weakProbPenalty - genericLowOddsPenalty - genericOddsDistance;
+  const agreementGap = Number.isFinite(candidate.marketProbability) ? Math.abs(candidate.p - candidate.marketProbability) : 0.08;
+  const agreementBonus = Number.isFinite(candidate.marketProbability)
+    ? Math.max(0, 0.12 - agreementGap) * 1.6
+    : 0;
+  return profile.baseBonus + marketFit + agreementBonus + probabilityBoost + edgeBoost - oddsDistancePenalty - lowOddsPenalty - highOddsPenalty - weakProbPenalty - genericLowOddsPenalty - genericOddsDistance;
 }
 
 function candidateLineLabel(candidate) {
