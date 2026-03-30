@@ -679,7 +679,6 @@ function renderDetailHistory(entry) {
       box.innerHTML = "";
       return;
     }
-    const matchCount = side === "home" ? stats.homeMatches : stats.awayMatches;
     const goalsFor = side === "home" ? stats.homeGF : stats.awayGF;
     const goalsAgainst = side === "home" ? stats.homeGA : stats.awayGA;
     const cornersFor = side === "home" ? stats.homeCornersFor : stats.awayCornersFor;
@@ -688,11 +687,7 @@ function renderDetailHistory(entry) {
     const cardsValue = hasCardsData(stats, side) ? formatHistoryValue(cardsFor, 2) : "—";
 
     box.innerHTML = `
-      <div class="history-inline">
-        <div class="history-inline-cell">
-          <span class="history-inline-k">Ult. 5</span>
-          <span class="history-inline-v">${escapeHtml(String(matchCount ?? "—"))}</span>
-        </div>
+      <div class="history-inline ${side === "home" ? "history-inline-home" : "history-inline-away"}">
         <div class="history-inline-cell">
           <span class="history-inline-k">GM</span>
           <span class="history-inline-v">${escapeHtml(formatHistoryValue(goalsFor, 2))}</span>
