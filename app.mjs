@@ -658,6 +658,7 @@ function renderPrimaryPick(match, recommendation) {
 function renderDetailHistory(entry) {
   const hs = entry?.homeStats;
   const as = entry?.awayStats;
+  const sourceNote = entry?.footballDataId ? `Competitie sursa: ${entry.footballDataId}` : "Date istorice partiale pentru acest meci.";
 
   if (hs) {
     renderRows("histHome", [
@@ -667,10 +668,12 @@ function renderDetailHistory(entry) {
       { label: "Cornere create", value: fmtNum(hs.homeCornersFor, 2) },
       { label: "Cartonase primite", value: fmtNum(hs.homeYCFor, 2) }
     ]);
-    el("histHomeNote").textContent = entry.footballDataId ? `Competitie sursa: ${entry.footballDataId}` : "";
+    el("histHomeNote").textContent = as ? sourceNote : `${sourceNote} • Forma gazdelor este disponibila, dar lipseste istoricul complet al oaspetilor.`;
   } else {
     renderRows("histHome", []);
-    el("histHomeNote").textContent = "Istoricul gazdelor nu este disponibil pentru acest meci.";
+    el("histHomeNote").textContent = as
+      ? "Forma gazdelor nu are inca suficient istoric valid in sursa curenta."
+      : "Istoricul este partial pentru ambele echipe in sursa curenta.";
   }
 
   if (as) {
@@ -681,10 +684,12 @@ function renderDetailHistory(entry) {
       { label: "Cornere create", value: fmtNum(as.awayCornersFor, 2) },
       { label: "Cartonase primite", value: fmtNum(as.awayYCFor, 2) }
     ]);
-    el("histAwayNote").textContent = entry.footballDataId ? `Competitie sursa: ${entry.footballDataId}` : "";
+    el("histAwayNote").textContent = hs ? sourceNote : `${sourceNote} • Forma oaspetilor este disponibila, dar lipseste istoricul complet al gazdelor.`;
   } else {
     renderRows("histAway", []);
-    el("histAwayNote").textContent = "Istoricul oaspetilor nu este disponibil pentru acest meci.";
+    el("histAwayNote").textContent = hs
+      ? "Forma oaspetilor nu are inca suficient istoric valid in sursa curenta."
+      : "Istoricul este partial pentru ambele echipe in sursa curenta.";
   }
 }
 
