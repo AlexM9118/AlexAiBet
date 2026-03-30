@@ -208,9 +208,12 @@ function scoreMarketFit(candidate) {
     const line = Number(goalsMatch[1]);
     if (candidate.sel === "OVER" && line >= 2.5 && line <= 3.5) score += 0.2;
     if (candidate.sel === "UNDER" && line >= 2.5 && line <= 3.5) score += 0.16;
-    if (candidate.sel === "UNDER" && line >= 4.5) score -= 0.28;
-    if (candidate.sel === "UNDER" && line === 3.5 && candidate.bookOdds < 1.34) score -= 0.12;
-    if (candidate.sel === "OVER" && line <= 1.5 && candidate.bookOdds < 1.28) score -= 0.22;
+    if (candidate.sel === "UNDER" && line >= 4.5) score -= 0.5;
+    if (candidate.sel === "UNDER" && line >= 4.5 && candidate.bookOdds < 1.34) score -= 0.18;
+    if (candidate.sel === "UNDER" && line === 3.5 && candidate.bookOdds < 1.30) score -= 0.3;
+    if (candidate.sel === "UNDER" && line === 3.5 && candidate.bookOdds >= 1.30 && candidate.bookOdds < 1.34) score -= 0.14;
+    if (candidate.sel === "OVER" && line <= 1.5 && candidate.bookOdds < 1.26) score -= 0.28;
+    if (candidate.sel === "OVER" && line <= 1.5 && candidate.bookOdds >= 1.26 && candidate.bookOdds <= 1.38) score += 0.08;
     return score;
   }
 
@@ -534,9 +537,14 @@ function evaluateTicket(picks, config) {
     map.set(family, (map.get(family) || 0) + 1);
     return map;
   }, new Map());
+  const marketCounts = picks.reduce((map, pick) => {
+    map.set(pick.market, (map.get(pick.market) || 0) + 1);
+    return map;
+  }, new Map());
   const familyPenalty = Array.from(familyCounts.values()).reduce((sum, count) => sum + Math.max(0, count - 2) * 0.38, 0);
+  const marketPenalty = Array.from(marketCounts.values()).reduce((sum, count) => sum + Math.max(0, count - 2) * 0.52, 0);
   const underPenalty = picks.filter((pick) => String(pick.sel) === "UNDER" && marketFamily(pick) === "GOALS").length >= Math.max(3, Math.ceil(picks.length * 0.7)) ? 0.55 : 0;
-  const score = closeness * 12 + (1 - avgP) * 2.4 + (1 - combinedProbability) * 0.8 + preferredRangePenalty + oddsPenalty + familyPenalty + underPenalty - (inTargetWindow ? 0.6 : 0);
+  const score = closeness * 12 + (1 - avgP) * 2.4 + (1 - combinedProbability) * 0.8 + preferredRangePenalty + oddsPenalty + familyPenalty + marketPenalty + underPenalty - (inTargetWindow ? 0.6 : 0);
   return { picks: picks.slice(), target, totalOdds, combinedProbability, avgP, closeness, score };
 }
 
