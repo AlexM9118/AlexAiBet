@@ -40,6 +40,17 @@ export function fmtTime(iso) {
   }).format(date);
 }
 
+export function fmtDateLocal(iso) {
+  if (!iso) return "—";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "—";
+  return new Intl.DateTimeFormat("ro-RO", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
+  }).format(date);
+}
+
 export function fmtDayLong(day) {
   if (!day) return "—";
   const date = new Date(`${day}T12:00:00Z`);

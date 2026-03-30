@@ -4,6 +4,7 @@ import {
   escapeHtml,
   fmtClock,
   fmtTime,
+  fmtDateLocal,
   fmtDayLong,
   pctRounded,
   pct01,
@@ -103,7 +104,10 @@ function setCardVisibility(cardId, rows, fallbackTextId = null, fallbackText = "
 
 function filteredMatches() {
   return UI.matches
-    .filter((match) => !current.day || String(match.day) === String(current.day))
+    .filter((match) => {
+      if (current.leagueId !== "all") return true;
+      return !current.day || String(match.day) === String(current.day);
+    })
     .filter((match) => current.leagueId === "all" || String(match.tournamentId) === String(current.leagueId))
     .sort((a, b) => (
       String(a.startTime || "").localeCompare(String(b.startTime || "")) ||
@@ -243,18 +247,26 @@ function renderMatchesList() {
   box.innerHTML = "";
 
   el("dayMatchCount").textContent = String(list.length);
-  el("dayHelper").textContent = list.length
-    ? `${fmtDayLong(current.day)} • ${list.length} meciuri disponibile`
-    : `${fmtDayLong(current.day)} • fara meciuri pentru filtrul curent`;
+  el("dayHelper").textContent = current.leagueId === "all"
+    ? (list.length
+      ? `${fmtDayLong(current.day)} • ${list.length} meciuri disponibile`
+      : `${fmtDayLong(current.day)} • fara meciuri pentru filtrul curent`)
+    : (list.length
+      ? `${list.length} meciuri viitoare in liga selectata`
+      : "Fara meciuri viitoare in liga selectata");
 
   const league = UI.leagues.find((item) => item.id === current.leagueId);
   const leagueLabel = current.leagueId === "all"
     ? "Toate ligile"
     : leagueDisplayName(league);
 
-  el("matchesSubtitle").textContent = list.length
-    ? `${fmtDayLong(current.day)} • ${leagueLabel}`
-    : `${fmtDayLong(current.day)} • nicio partida in filtrul curent`;
+  el("matchesSubtitle").textContent = current.leagueId === "all"
+    ? (list.length
+      ? `${fmtDayLong(current.day)} • ${leagueLabel}`
+      : `${fmtDayLong(current.day)} • nicio partida in filtrul curent`)
+    : (list.length
+      ? `${leagueLabel} • toate meciurile viitoare`
+      : `${leagueLabel} • nicio partida viitoare in filtrul curent`);
 
   if (!list.length) {
     box.innerHTML = `<div class="reco-empty">Nu exista meciuri pentru combinatia de data si liga selectata.</div>`;
@@ -273,6 +285,7 @@ function renderMatchesList() {
         <div class="match-time">${escapeHtml(fmtClock(match.startTime))}</div>
         <div class="match-clubs">
           <div class="match-name">${escapeHtml(match.home)} vs ${escapeHtml(match.away)}</div>
+          <div class="match-date">${escapeHtml(fmtDateLocal(match.startTime))}</div>
           <div class="match-link">Click pentru analiza completa a meciului</div>
         </div>
       </div>
