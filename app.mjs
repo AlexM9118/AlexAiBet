@@ -27,11 +27,23 @@ let UI = { index: null, leagues: [], matches: [], matchByFixtureId: new Map(), m
 let HIST = null;
 let current = { day: null, leagueId: "all", fixtureId: null, ticketKey: "safe", view: "matches" };
 
+const TEAM_DISPLAY_ALIASES = {
+  "ACS Champions FC Arges": "FC Arges",
+  "Fotbal Club FCSB": "FCSB",
+  "FC CFR 1907 Cluj": "CFR Cluj",
+  "Wolverhampton Wanderers": "Wolverhampton"
+};
+
 function leagueDisplayName(league) {
   if (!league) return "Liga selectata";
   return league.id === "all"
     ? league.name
     : league.categoryName ? `${league.categoryName} • ${league.name}` : league.name;
+}
+
+function displayTeamName(name) {
+  const raw = String(name || "").trim();
+  return TEAM_DISPLAY_ALIASES[raw] || raw || "?";
 }
 
 function nowLocal() {
@@ -130,8 +142,8 @@ async function loadAll() {
       categoryName: match.categoryName || "",
       startTime: match.startTime,
       day: match.day,
-      home: match.home || "?",
-      away: match.away || "?",
+      home: displayTeamName(match.home),
+      away: displayTeamName(match.away),
       featuredMarkets: match.featuredMarkets || {},
       selectionIndex: match.selectionIndex || {}
     }))
@@ -419,8 +431,10 @@ async function loadAndRenderMatch() {
   const featuredMarkets = fixture.featuredMarkets || summary?.featuredMarkets || {};
   const entry = getHistEntry(current.fixtureId);
   const recommendation = getMatchRecommendation(current.fixtureId);
+  const home = displayTeamName(fixture.home || summary?.home || "?");
+  const away = displayTeamName(fixture.away || summary?.away || "?");
 
-  el("matchTitle").textContent = `${fixture.home || summary?.home || "?"} vs ${fixture.away || summary?.away || "?"}`;
+  el("matchTitle").textContent = `${home} vs ${away}`;
   el("matchMeta").textContent = `${fixture.categoryName || summary?.categoryName || "—"} • ${fixture.tournamentName || summary?.tournamentName || "—"} • ${fmtTime(fixture.startTime || summary?.startTime)}`;
 
   renderPrimaryPick(summary, recommendation);
