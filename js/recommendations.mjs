@@ -356,6 +356,39 @@ function chooseDisplayedRecommendation(scored) {
   return best;
 }
 
+function isSameRecommendation(a, b) {
+  if (!a || !b) return false;
+  return `${a.market}|${a.sel}` === `${b.market}|${b.sel}`;
+}
+
+function pickSecondaryRecommendation(scored, primary) {
+  if (!primary || !scored?.length) return null;
+  const primaryFamily = marketFamily(primary);
+  const primaryLine = candidateLineLabel(primary);
+
+  const strongFamilyAlt = scored.find(({ candidate, score }) => (
+    candidate &&
+    !isSameRecommendation(candidate, primary) &&
+    marketFamily(candidate) !== primaryFamily &&
+    candidate.bookOdds >= 1.24 &&
+    score >= scored[0].score - 0.28
+  ))?.candidate || null;
+
+  if (strongFamilyAlt) return strongFamilyAlt;
+
+  const strongLineAlt = scored.find(({ candidate, score }) => (
+    candidate &&
+    !isSameRecommendation(candidate, primary) &&
+    candidateLineLabel(candidate) !== primaryLine &&
+    candidate.bookOdds >= 1.24 &&
+    score >= scored[0].score - 0.2
+  ))?.candidate || null;
+
+  if (strongLineAlt) return strongLineAlt;
+
+  return scored.find(({ candidate }) => candidate && !isSameRecommendation(candidate, primary))?.candidate || null;
+}
+
 export function getRecommendationConfidence(candidate) {
   if (!candidate) return { label: "Redusa", tone: "muted" };
   if (candidate.source === "odds") {
@@ -531,10 +564,14 @@ function fallbackCandidatesFromOdds(match) {
 }
 
 export function buildMatchRecommendation(match, getHistEntry) {
+  return buildMatchRecommendationPair(match, getHistEntry)?.primary || null;
+}
+
+export function buildMatchRecommendationPair(match, getHistEntry) {
   const historyCandidates = getCandidatesForMatch(match, getHistEntry, 0.46)
     .filter((candidate) => Number.isFinite(candidate.bookOdds) && candidate.bookOdds <= MAX_TICKET_LEG_ODDS + 0.15);
   const candidates = historyCandidates.length ? historyCandidates : fallbackCandidatesFromOdds(match);
-  if (!candidates.length) return null;
+  if (!candidates.length) return { primary: null, secondary: null, candidates: [] };
 
   const preferredCandidates = candidates.filter((candidate) => candidate.bookOdds >= MIN_MATCH_RECO_ODDS);
   const scoringPool = preferredCandidates.length ? preferredCandidates : candidates;
@@ -548,9 +585,17 @@ export function buildMatchRecommendation(match, getHistEntry) {
     .sort((a, b) => b.score - a.score || b.candidate.p - a.candidate.p || b.candidate.edge - a.candidate.edge);
 
   const best = chooseDisplayedRecommendation(scored) || scored[0]?.candidate || scoringPool[0] || candidates[0];
-  if (!best) return null;
+  if (!best) return { primary: null, secondary: null, candidates: scored.map((entry) => entry.candidate) };
   best.confidence = getRecommendationConfidence(best);
-  return best;
+
+  const secondary = pickSecondaryRecommendation(scored, best);
+  if (secondary) secondary.confidence = getRecommendationConfidence(secondary);
+
+  return {
+    primary: best,
+    secondary: secondary || null,
+    candidates: scored.map((entry) => entry.candidate)
+  };
 }
 
 export function buildTwoWayRows(lines, lambdaTotal, noun) {

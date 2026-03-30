@@ -15,6 +15,7 @@ import {
 import { rowsFromFeaturedMarket, estGoals, estCorners, estCards } from "./js/models.mjs";
 import {
   buildMatchRecommendation,
+  buildMatchRecommendationPair,
   getCandidatesForMatch,
   buildTwoWayRows,
   buildConfidenceModel,
@@ -24,7 +25,7 @@ import {
   TICKET_CONFIGS
 } from "./js/recommendations.mjs";
 
-let UI = { index: null, leagues: [], matches: [], matchByFixtureId: new Map(), matchRecommendations: new Map() };
+let UI = { index: null, leagues: [], matches: [], matchByFixtureId: new Map(), matchRecommendations: new Map(), matchRecommendationPairs: new Map() };
 let HIST = null;
 let current = { day: null, calendarMonth: null, leagueId: "all", fixtureId: null, ticketKey: "safe", view: "matches", leagueQuery: "" };
 
@@ -109,6 +110,10 @@ function getMatchSummary(fixtureId) {
 
 function getMatchRecommendation(fixtureId) {
   return UI.matchRecommendations.get(String(fixtureId)) || null;
+}
+
+function getMatchRecommendationPair(fixtureId) {
+  return UI.matchRecommendationPairs.get(String(fixtureId)) || { primary: null, secondary: null };
 }
 
 function marketFamilyLabel(recommendation) {
@@ -257,7 +262,8 @@ async function loadAll() {
   ];
 
   UI.matchByFixtureId = new Map(UI.matches.map((match) => [String(match.fixtureId), match]));
-  UI.matchRecommendations = new Map(UI.matches.map((match) => [String(match.fixtureId), buildMatchRecommendation(match, getHistEntry)]));
+  UI.matchRecommendationPairs = new Map(UI.matches.map((match) => [String(match.fixtureId), buildMatchRecommendationPair(match, getHistEntry)]));
+  UI.matchRecommendations = new Map(UI.matches.map((match) => [String(match.fixtureId), getMatchRecommendationPair(match.fixtureId).primary || buildMatchRecommendation(match, getHistEntry)]));
 
   current.day = pickDefaultDay(UI.index.days) || UI.matches[0]?.day || null;
   current.leagueId = UI.leagues.some((league) => league.id === current.leagueId) ? current.leagueId : "all";
@@ -503,10 +509,14 @@ function renderMatchesList() {
   }
 
   for (const match of list) {
-    const recommendation = getMatchRecommendation(match.fixtureId);
+    const recommendationPair = getMatchRecommendationPair(match.fixtureId);
+    const recommendation = recommendationPair?.primary || null;
+    const secondaryRecommendation = recommendationPair?.secondary || null;
     const confidence = recommendation?.confidence || getRecommendationConfidence(recommendation);
     const successPct = recommendation ? clamp(Math.round(recommendation.p * 100), 0, 100) : 0;
     const dangerPct = 100 - successPct;
+    const secondarySuccessPct = secondaryRecommendation ? clamp(Math.round(secondaryRecommendation.p * 100), 0, 100) : 0;
+    const secondaryDangerPct = 100 - secondarySuccessPct;
     const row = document.createElement("article");
     row.className = "match-row";
     row.innerHTML = `
@@ -521,19 +531,39 @@ function renderMatchesList() {
       <div class="league-chip">${escapeHtml(formatCategoryName(match.categoryName))} • ${escapeHtml(formatLeagueName(match.tournamentName))}</div>
       ${
         recommendation ? `
-          <div class="reco-pill">
-            <div class="reco-copy">
-              <div class="reco-label">Best bet • ${escapeHtml(confidence.label)}</div>
-              <div class="reco-pick">${escapeHtml(recommendation.displayLabel)}</div>
-              <div class="reco-meter" aria-label="${escapeHtml(`${successPct}% sansa estimata`)}}">
-                <div class="reco-meter-bar">
-                  <span class="reco-meter-safe" style="width:${successPct}%"></span>
-                  <span class="reco-meter-risk" style="width:${dangerPct}%"></span>
+          <div class="reco-stack">
+            <div class="reco-pill">
+              <div class="reco-copy">
+                <div class="reco-label">Best bet • ${escapeHtml(confidence.label)}</div>
+                <div class="reco-pick">${escapeHtml(recommendation.displayLabel)}</div>
+                <div class="reco-meter" aria-label="${escapeHtml(`${successPct}% sansa estimata`)}}">
+                  <div class="reco-meter-bar">
+                    <span class="reco-meter-safe" style="width:${successPct}%"></span>
+                    <span class="reco-meter-risk" style="width:${dangerPct}%"></span>
+                  </div>
+                  <div class="reco-meter-label">${escapeHtml(`${successPct}% sansa estimata`)}</div>
                 </div>
-                <div class="reco-meter-label">${escapeHtml(`${successPct}% sansa estimata`)}</div>
               </div>
+              <div class="reco-odds">${fmtOdds(recommendation.bookOdds)}</div>
             </div>
-            <div class="reco-odds">${fmtOdds(recommendation.bookOdds)}</div>
+            ${
+              secondaryRecommendation ? `
+                <div class="reco-pill reco-pill-secondary">
+                  <div class="reco-copy">
+                    <div class="reco-label reco-label-secondary">Plan B</div>
+                    <div class="reco-pick reco-pick-secondary">${escapeHtml(secondaryRecommendation.displayLabel)}</div>
+                    <div class="reco-meter reco-meter-secondary" aria-label="${escapeHtml(`${secondarySuccessPct}% sansa estimata`)}}">
+                      <div class="reco-meter-bar reco-meter-bar-secondary">
+                        <span class="reco-meter-safe" style="width:${secondarySuccessPct}%"></span>
+                        <span class="reco-meter-risk" style="width:${secondaryDangerPct}%"></span>
+                      </div>
+                      <div class="reco-meter-label reco-meter-label-secondary">${escapeHtml(`${secondarySuccessPct}% sansa estimata`)}</div>
+                    </div>
+                  </div>
+                  <div class="reco-odds reco-odds-secondary">${fmtOdds(secondaryRecommendation.bookOdds)}</div>
+                </div>
+              ` : ``
+            }
           </div>
         ` : `
           <div class="reco-empty">Momentan lipsesc suficiente date pentru o recomandare de incredere.</div>
