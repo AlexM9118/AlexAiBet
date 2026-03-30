@@ -77,7 +77,12 @@
             </span>
             <span class="league-trigger-icon" aria-hidden="true"></span>
           </button>
-          <div class="league-menu" id="leagueMenu" role="listbox" hidden></div>
+          <div class="league-menu" id="leagueMenu" role="listbox" hidden>
+            <div class="league-search-shell">
+              <input class="league-search-input" id="leagueSearchInput" type="text" placeholder="Caută țară sau ligă" autocomplete="off" />
+            </div>
+            <div id="leagueMenuOptions"></div>
+          </div>
           <select id="leagueSel" hidden aria-hidden="true" tabindex="-1"></select>
         </div>
       </section>

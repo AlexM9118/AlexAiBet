@@ -589,6 +589,40 @@ select option:checked{
   scrollbar-gutter:stable both-edges;
 }
 
+.league-search-shell{
+  position:sticky;
+  top:-8px;
+  z-index:2;
+  margin:-8px -8px 8px;
+  padding:8px;
+  background:linear-gradient(180deg, rgba(28,10,14,0.98), rgba(28,10,14,0.88));
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+
+.league-search-input{
+  width:100%;
+  padding:11px 12px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.08);
+  background:rgba(255,255,255,0.05);
+  color:#fff7f7;
+  font:inherit;
+  outline:none;
+}
+
+.league-search-input::placeholder{
+  color:#d8b9bc;
+}
+
+.league-search-input:focus{
+  border-color:rgba(244,199,202,0.32);
+  box-shadow:0 0 0 3px rgba(190,36,43,0.16);
+}
+
+#leagueMenuOptions{
+  min-height:24px;
+}
+
 .league-group-label{
   padding:8px 10px 4px;
   color:#f4c7ca;
@@ -634,6 +668,12 @@ select option:checked{
 .league-option-subtitle{
   font-size:11px;
   color:#f0c8cb;
+}
+
+.league-empty{
+  padding:14px 12px;
+  color:#f0c8cb;
+  font-size:12px;
 }
 
 .day-count{

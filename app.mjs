@@ -26,7 +26,7 @@ import {
 
 let UI = { index: null, leagues: [], matches: [], matchByFixtureId: new Map(), matchRecommendations: new Map() };
 let HIST = null;
-let current = { day: null, calendarMonth: null, leagueId: "all", fixtureId: null, ticketKey: "safe", view: "matches" };
+let current = { day: null, calendarMonth: null, leagueId: "all", fixtureId: null, ticketKey: "safe", view: "matches", leagueQuery: "" };
 
 const TEAM_DISPLAY_ALIASES = {
   "ACS Champions FC Arges": "FC Arges",
@@ -39,7 +39,28 @@ function leagueDisplayName(league) {
   if (!league) return "Liga selectata";
   return league.id === "all"
     ? league.name
-    : league.categoryName ? `${league.categoryName} • ${league.name}` : league.name;
+    : league.categoryName ? `${league.categoryName} • ${formatLeagueName(league.name)}` : formatLeagueName(league.name);
+}
+
+function formatLeagueName(name) {
+  const raw = String(name || "").trim();
+  const map = {
+    "2. Bundesliga": "Bundesliga 2",
+    "LaLiga 2": "LaLiga 2",
+    "Ligue 2": "Ligue 2",
+    "Serie B": "Serie B",
+    "Championship": "Championship",
+    "Division 1": "Division 1"
+  };
+  return map[raw] || raw;
+}
+
+function leagueSortRank(name) {
+  const raw = String(name || "").trim();
+  const lower = raw.toLowerCase();
+  if (/premier league|bundesliga$|serie a$|laliga$|ligue 1$|eredivisie$|primeira liga$|liga portugal$|super lig$|super league$|superliga$|ekstraklasa$|hnl$|prvaliga$|nb i$|1\. liga$|allsvenskan$|eliteserien$|veikkausliiga$|liga profesional$|brasileiro serie a$|chinese super league$|premiership$|mls$/.test(lower)) return 0;
+  if (/championship$|bundesliga 2$|2\. bundesliga$|serie b$|laliga 2$|ligue 2$|1\. liga$|i liga$|persha liga$|superettan$|division 1$/.test(lower)) return 1;
+  return 2;
 }
 
 function displayTeamName(name) {
@@ -217,7 +238,13 @@ async function loadAll() {
           name: match.tournamentName,
           categoryName: match.categoryName || ""
         }])
-    ).values()).sort((a, b) => `${a.categoryName} ${a.name}`.localeCompare(`${b.categoryName} ${b.name}`))
+    ).values()).sort((a, b) => {
+      const groupCmp = String(a.categoryName || "").localeCompare(String(b.categoryName || ""));
+      if (groupCmp !== 0) return groupCmp;
+      const rankCmp = leagueSortRank(a.name) - leagueSortRank(b.name);
+      if (rankCmp !== 0) return rankCmp;
+      return formatLeagueName(a.name).localeCompare(formatLeagueName(b.name));
+    })
   ];
 
   UI.matchByFixtureId = new Map(UI.matches.map((match) => [String(match.fixtureId), match]));
@@ -328,12 +355,19 @@ function renderDayCalendar() {
 
 function renderLeagueSel() {
   const select = el("leagueSel");
-  const menu = el("leagueMenu");
+  const menu = el("leagueMenuOptions");
   select.innerHTML = "";
   menu.innerHTML = "";
 
+  const query = String(current.leagueQuery || "").trim().toLowerCase();
+  const visibleLeagues = UI.leagues.filter((league) => {
+    if (!query) return true;
+    const haystack = `${league.categoryName || ""} ${formatLeagueName(league.name)} ${league.id === "all" ? "toate ligile" : ""}`.toLowerCase();
+    return haystack.includes(query);
+  });
+
   let currentGroup = null;
-  for (const league of UI.leagues) {
+  for (const league of visibleLeagues) {
     const option = document.createElement("option");
     option.value = league.id;
     option.textContent = leagueDisplayName(league);
@@ -360,7 +394,7 @@ function renderLeagueSel() {
       : `${UI.matches.filter((match) => String(match.tournamentId) === String(league.id)).length} meciuri viitoare`;
     item.innerHTML = `
       <span class="league-option-copy">
-        <span class="league-option-title">${escapeHtml(league.id === "all" ? league.name : league.name)}</span>
+        <span class="league-option-title">${escapeHtml(league.id === "all" ? league.name : formatLeagueName(league.name))}</span>
         <span class="league-option-subtitle">${escapeHtml(league.id === "all" ? "Toate competitiile disponibile in feed-ul curent" : `${league.categoryName} • ${meta}`)}</span>
       </span>
     `;
@@ -375,6 +409,14 @@ function renderLeagueSel() {
     });
     menu.appendChild(item);
   }
+
+  if (!visibleLeagues.length) {
+    const empty = document.createElement("div");
+    empty.className = "league-empty";
+    empty.textContent = "Nicio competiție nu corespunde căutării.";
+    menu.appendChild(empty);
+  }
+
   select.value = current.leagueId || "all";
   updateLeagueTrigger();
 }
@@ -407,6 +449,11 @@ function toggleLeagueMenu(forceOpen = null) {
   trigger?.setAttribute("aria-expanded", String(shouldOpen));
   if (menu) menu.hidden = !shouldOpen;
   if (shouldOpen && menu) {
+    const search = el("leagueSearchInput");
+    if (search) {
+      search.value = current.leagueQuery || "";
+      setTimeout(() => search.focus(), 0);
+    }
     const activeItem = menu.querySelector('.league-option.active');
     activeItem?.scrollIntoView({ block: "nearest" });
   }
@@ -462,7 +509,7 @@ function renderMatchesList() {
           <div class="match-link">Click pentru analiza completa a meciului</div>
         </div>
       </div>
-      <div class="league-chip">${escapeHtml(match.categoryName)} • ${escapeHtml(match.tournamentName)}</div>
+      <div class="league-chip">${escapeHtml(match.categoryName)} • ${escapeHtml(formatLeagueName(match.tournamentName))}</div>
       ${
         recommendation ? `
           <div class="reco-pill">
@@ -614,7 +661,7 @@ async function loadAndRenderMatch() {
   const away = displayTeamName(fixture.away || summary?.away || "?");
 
   el("matchTitle").textContent = `${home} vs ${away}`;
-  el("matchMeta").textContent = `${fixture.categoryName || summary?.categoryName || "—"} • ${fixture.tournamentName || summary?.tournamentName || "—"} • ${fmtTime(fixture.startTime || summary?.startTime)}`;
+  el("matchMeta").textContent = `${fixture.categoryName || summary?.categoryName || "—"} • ${formatLeagueName(fixture.tournamentName || summary?.tournamentName || "—")} • ${fmtTime(fixture.startTime || summary?.startTime)}`;
 
   renderPrimaryPick(summary, recommendation);
   renderRows("market1x2", rowsFromFeaturedMarket(featuredMarkets.ft1x2, "ft1x2", fmtOdds));
@@ -817,6 +864,11 @@ async function init() {
       event.stopPropagation();
       closeDayMenu();
       toggleLeagueMenu();
+    });
+
+    el("leagueSearchInput")?.addEventListener("input", (event) => {
+      current.leagueQuery = event.target.value || "";
+      renderLeagueSel();
     });
 
     document.addEventListener("click", (event) => {
