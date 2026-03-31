@@ -1,5 +1,5 @@
-const STATIC_CACHE = "alexaibet-static-v2";
-const DATA_CACHE = "alexaibet-data-v2";
+const STATIC_CACHE = "zbet-static-v3";
+const DATA_CACHE = "zbet-data-v3";
 
 const STATIC_ASSETS = [
   "./",
