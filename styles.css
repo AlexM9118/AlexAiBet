@@ -1411,19 +1411,26 @@ select option:checked{
   .topbar{
     grid-template-columns:1fr;
     justify-items:start;
+    gap:12px;
+    padding:14px 16px calc(12px + env(safe-area-inset-top, 0px));
   }
 
   .main-nav{
     justify-content:flex-start;
     flex-wrap:wrap;
+    width:100%;
   }
 
   .dashboard{
     grid-template-columns:1fr;
+    gap:14px;
+    padding:14px 14px 22px;
   }
 
   .sidebar-panel{
     position:static;
+    gap:14px;
+    padding:18px 16px;
   }
 
   .match-list-head{
@@ -1453,22 +1460,67 @@ select option:checked{
     flex-direction:column;
     align-items:stretch;
   }
+
+  .panel,
+  .detail-hero,
+  .detail-metric,
+  .detail-card,
+  .ticket-hero{
+    border-radius:20px;
+  }
 }
 
 @media (max-width: 640px){
-  .topbar{ padding:16px; }
-  .dashboard{ padding:14px 12px 20px; }
+  .topbar{
+    gap:10px;
+    padding:12px 12px calc(10px + env(safe-area-inset-top, 0px));
+  }
+  .dashboard{ padding:12px 10px calc(18px + env(safe-area-inset-bottom, 0px)); }
   .panel-hero,
   .sidebar-panel,
   .detail-panel,
-  .ticket-hero{ padding-left:16px; padding-right:16px; }
+  .ticket-hero{ padding-left:14px; padding-right:14px; }
   .match-feed,
   .ticket-viewer,
-  .ticket-tabbar{ padding-left:14px; padding-right:14px; }
-  .hero-title{ font-size:22px; }
-  .detail-title{ font-size:22px; }
-  .brand-logo{ width:214px; }
-  .navlink{ min-width:unset; }
+  .ticket-tabbar{ padding-left:12px; padding-right:12px; }
+  .hero-title{ font-size:20px; }
+  .detail-title{ font-size:20px; }
+  .brand-logo{ width:176px; }
+  .main-nav{
+    width:100%;
+    gap:6px;
+    padding:6px;
+    border-radius:16px;
+  }
+  .navlink{
+    flex:1 1 0;
+    min-width:0;
+    padding:10px 12px;
+    border-radius:12px;
+    font-size:13px;
+  }
+  .iconbtn{
+    width:40px;
+    height:40px;
+    font-size:16px;
+  }
+  .day-control{
+    grid-template-columns:minmax(0,1fr) 38px;
+    gap:8px;
+  }
+  .day-trigger,
+  .league-trigger{
+    gap:10px;
+    padding:11px 12px;
+  }
+  .day-trigger-label,
+  .league-trigger-label{
+    font-size:13px;
+  }
+  .day-trigger-meta,
+  .league-trigger-meta{
+    font-size:10px;
+  }
   .day-menu,
   .league-menu{ max-height:min(76vh, 520px); }
   .league-menu{
@@ -1502,20 +1554,143 @@ select option:checked{
   .league-option-subtitle{
     font-size:12px;
   }
-  .history-inline{
-    grid-template-columns:repeat(5, minmax(52px,1fr));
-    gap:5px;
-    overflow-x:auto;
-    padding-bottom:2px;
+  .match-feed{
+    gap:6px;
   }
-  .history-inline-cell{
-    min-height:44px;
-    padding:6px 7px;
+  .match-row{
+    gap:6px;
+    padding:8px;
+    border-radius:14px;
   }
-  .history-inline-k{
+  .match-time{
+    flex:0 0 38px;
     font-size:9px;
   }
+  .match-name{
+    font-size:11px;
+    line-height:1.25;
+  }
+  .match-date,
+  .match-link,
+  .league-chip{
+    font-size:8px;
+  }
+  .reco-pill{
+    gap:6px;
+    padding:5px 6px;
+  }
+  .reco-pill-secondary{
+    gap:4px;
+    padding:3px 5px;
+  }
+  .reco-label{
+    font-size:9px;
+  }
+  .reco-pick{
+    font-size:10px;
+  }
+  .reco-pick-secondary{
+    font-size:8px;
+  }
+  .reco-meter-bar{
+    height:6px;
+  }
+  .reco-meter-bar-secondary{
+    height:3px;
+  }
+  .reco-meter-label{
+    font-size:8px;
+  }
+  .reco-meter-label-secondary{
+    font-size:7px;
+  }
+  .reco-odds{
+    min-width:48px;
+    padding:5px 6px;
+    font-size:9px;
+  }
+  .reco-odds-secondary{
+    min-width:38px;
+    padding:3px 4px;
+    font-size:7px;
+  }
+  .detail-panel{
+    gap:10px;
+    padding:14px;
+  }
+  .detail-hero{
+    padding:14px;
+  }
+  .detail-meta{
+    font-size:12px;
+  }
+  .detail-metric{
+    padding:12px 13px;
+    border-radius:16px;
+  }
+  .detail-metric-value{
+    font-size:19px;
+  }
+  .detail-metric-copy,
+  .detail-metric-note,
+  .primary-pick-meta,
+  .primary-pick-note,
+  .market-footnote,
+  .context-note,
+  .confidence-copy,
+  .confidence-list{
+    font-size:11px;
+    line-height:1.5;
+  }
+  .detail-card{
+    padding:12px;
+    border-radius:14px;
+  }
+  .detail-card-title{
+    margin-bottom:8px;
+    font-size:13px;
+  }
+  .history-inline{
+    grid-template-columns:repeat(4, minmax(68px,1fr));
+    gap:5px;
+    overflow-x:auto;
+    padding:7px;
+    padding-bottom:2px;
+    scrollbar-width:none;
+  }
+  .history-inline::-webkit-scrollbar{
+    display:none;
+  }
+  .history-inline-cell{
+    min-height:40px;
+    padding:6px;
+  }
+  .history-inline-k{
+    font-size:7px;
+  }
   .history-inline-v{
+    font-size:10px;
+  }
+  .row,
+  .compact-rows .row{
+    gap:10px;
+    min-height:38px;
+    padding:8px 9px;
+  }
+  .row .k,
+  .row .v,
+  .muted{
+    font-size:11px;
+  }
+  .ticket-hero{
+    padding-top:14px;
+    padding-bottom:14px;
+  }
+  .ticket-title{
+    font-size:16px;
+  }
+  .footer{
+    padding:0 12px calc(18px + env(safe-area-inset-bottom, 0px));
     font-size:11px;
   }
   .day-cell{ min-height:42px; }
