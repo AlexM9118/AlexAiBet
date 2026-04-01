@@ -29,6 +29,7 @@ let UI = { index: null, leagues: [], matches: [], matchByFixtureId: new Map(), m
 let HIST = null;
 let current = { day: null, calendarMonth: null, leagueId: "all", fixtureId: null, ticketKey: "safe", view: "matches", leagueQuery: "" };
 const EMPTY_LEAGUE_WINDOW_DAYS = 7;
+const expandedAltFixtures = new Set();
 
 const TEAM_DISPLAY_ALIASES = {
   "ACS Champions FC Arges": "FC Arges",
@@ -52,7 +53,8 @@ function formatLeagueName(name) {
     "Ligue 2": "Ligue 2",
     "Serie B": "Serie B",
     "Championship": "Championship",
-    "Division 1": "Division 1"
+    "Division 1": "Division 1",
+    "I Liga": "Liga 1"
   };
   return map[raw] || raw;
 }
@@ -167,15 +169,16 @@ function getRecommendationGapMessage(match) {
   const hist = getHistEntry(match?.fixtureId);
   const hasPrices = hasLiveSelectionPrices(match);
   const noLeagueMapping = String(hist?.note || "").toLowerCase().includes("no league mapping");
+  const leagueName = formatLeagueName(match?.tournamentName || "");
 
   if (!hasPrices && noLeagueMapping) {
-    return "Cotele live lipsesc momentan in feed, iar analiza pentru aceasta liga este in curs de extindere.";
+    return `Cotele live lipsesc momentan in feed, iar analiza pentru ${leagueName || "aceasta liga"} este in curs de extindere.`;
   }
   if (!hasPrices) {
     return "Cotele live lipsesc momentan in feed pentru acest meci.";
   }
   if (noLeagueMapping) {
-    return "Analiza pentru aceasta liga este in curs de extindere.";
+    return `Analiza pentru ${leagueName || "aceasta liga"} este in curs de extindere.`;
   }
   return "Momentan lipsesc suficiente date pentru o recomandare de incredere.";
 }
@@ -583,6 +586,15 @@ function renderMatchesList() {
     const recommendationPair = getMatchRecommendationPair(match.fixtureId);
     const recommendation = recommendationPair?.primary || null;
     const secondaryRecommendation = recommendationPair?.secondary || null;
+    const alternatives = getCandidatesForMatch(match, getHistEntry, 0.52)
+      .filter((candidate) => {
+        const key = `${candidate.market}|${candidate.sel}`;
+        const primaryKey = recommendation ? `${recommendation.market}|${recommendation.sel}` : null;
+        const secondaryKey = secondaryRecommendation ? `${secondaryRecommendation.market}|${secondaryRecommendation.sel}` : null;
+        return key !== primaryKey && key !== secondaryKey;
+      })
+      .slice(0, 3);
+    const alternativesExpanded = expandedAltFixtures.has(String(match.fixtureId));
     const confidence = recommendation?.confidence || getRecommendationConfidence(recommendation);
     const successPct = recommendation ? clamp(Math.round(recommendation.p * 100), 0, 100) : 0;
     const dangerPct = 100 - successPct;
@@ -603,7 +615,7 @@ function renderMatchesList() {
       ${
         recommendation ? `
           <div class="reco-stack">
-            <div class="reco-pill">
+            <div class="reco-pill reco-pill-primary">
               <div class="reco-copy">
                 <div class="reco-label">Best bet • ${escapeHtml(confidence.label)}</div>
                 <div class="reco-pick">${escapeHtml(recommendation.displayLabel)}</div>
@@ -635,6 +647,29 @@ function renderMatchesList() {
                 </div>
               ` : ``
             }
+            ${
+              alternatives.length ? `
+                <button class="alt-toggle ${alternativesExpanded ? "open" : ""}" type="button" data-alt-toggle="${escapeHtml(String(match.fixtureId))}" aria-expanded="${alternativesExpanded ? "true" : "false"}">
+                  <span class="alt-toggle-copy">Alternative bune</span>
+                  <span class="alt-toggle-count">${alternatives.length}</span>
+                  <span class="alt-toggle-chevron" aria-hidden="true"></span>
+                </button>
+                <div class="alt-drawer ${alternativesExpanded ? "open" : ""}" ${alternativesExpanded ? "" : "hidden"}>
+                  ${alternatives.map((candidate) => {
+                    const candidatePct = clamp(Math.round(candidate.p * 100), 0, 100);
+                    return `
+                      <div class="alt-drawer-row">
+                        <div class="alt-drawer-copy">
+                          <div class="alt-drawer-label">${escapeHtml(candidate.displayLabel)}</div>
+                          <div class="alt-drawer-meta">${escapeHtml(`${candidatePct}% reusita estimata`)}</div>
+                        </div>
+                        <div class="alt-drawer-odds">${fmtOdds(candidate.bookOdds)}</div>
+                      </div>
+                    `;
+                  }).join("")}
+                </div>
+              ` : ``
+            }
           </div>
         ` : `
           <div class="reco-empty">${escapeHtml(getRecommendationGapMessage(match))}</div>
@@ -643,6 +678,24 @@ function renderMatchesList() {
     `;
     row.addEventListener("click", async () => {
       await openMatchDetail(match.fixtureId);
+    });
+    row.querySelectorAll("[data-alt-toggle]").forEach((button) => {
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const fixtureId = String(button.getAttribute("data-alt-toggle") || "");
+        if (!fixtureId) return;
+        if (expandedAltFixtures.has(fixtureId)) {
+          expandedAltFixtures.delete(fixtureId);
+        } else {
+          expandedAltFixtures.add(fixtureId);
+        }
+        renderMatchesList();
+      });
+    });
+    row.querySelectorAll(".alt-drawer").forEach((drawer) => {
+      drawer.addEventListener("click", (event) => {
+        event.stopPropagation();
+      });
     });
     box.appendChild(row);
   }

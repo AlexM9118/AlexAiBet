@@ -53,15 +53,40 @@ button, select, input{ font:inherit; }
 .brand-lockup{
   display:flex;
   align-items:center;
+  gap:14px;
   text-decoration:none;
 }
 
-.brand-logo{
+.brand-mark{
   display:block;
-  width:252px;
-  max-width:100%;
-  height:auto;
+  width:74px;
+  height:74px;
+  border-radius:22px;
+  flex:0 0 74px;
   filter:drop-shadow(0 18px 28px rgba(0,0,0,0.28));
+}
+
+.brand-copy{
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+}
+
+.brand-word{
+  font-family:var(--font-display);
+  font-size:44px;
+  line-height:0.95;
+  font-weight:900;
+  letter-spacing:-1px;
+  color:#f6f8fb;
+}
+
+.brand-tagline{
+  margin-top:8px;
+  font-size:11px;
+  letter-spacing:7px;
+  text-transform:uppercase;
+  color:#9ca4b2;
 }
 
 .main-nav{
@@ -677,7 +702,7 @@ select option:checked{
     linear-gradient(135deg, rgba(24,29,37,0.98), rgba(10,13,18,0.98)),
     linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
   box-shadow:
-    inset 3px 0 0 rgba(72, 201, 255, 0.18),
+    inset 3px 0 0 rgba(84, 106, 139, 0.22),
     inset 0 1px 0 rgba(255,255,255,0.02);
   cursor:pointer;
   transition:transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
@@ -687,7 +712,7 @@ select option:checked{
   transform:translateY(-1px);
   border-color:rgba(255,255,255,0.12);
   box-shadow:
-    inset 3px 0 0 rgba(72, 201, 255, 0.26),
+    inset 3px 0 0 rgba(84, 106, 139, 0.32),
     0 12px 30px rgba(0,0,0,0.24);
 }
 
@@ -736,9 +761,9 @@ select option:checked{
   max-width:100%;
   padding:4px 8px;
   border-radius:999px;
-  background:rgba(255,255,255,0.04);
-  border:1px solid rgba(255,255,255,0.06);
-  color:#d7dce5;
+  background:rgba(18,22,29,0.86);
+  border:1px solid rgba(96,108,126,0.18);
+  color:#c9d2de;
   font-size:9px;
   font-weight:700;
 }
@@ -746,7 +771,7 @@ select option:checked{
 .reco-stack{
   display:flex;
   flex-direction:column;
-  gap:6px;
+  gap:7px;
 }
 
 .reco-pill{
@@ -765,16 +790,20 @@ select option:checked{
     linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
 }
 
+.reco-pill-primary{
+  border-color:rgba(33,191,114,0.28);
+}
+
 .reco-pill-secondary{
   gap:5px;
   padding:4px 6px;
-  border-color:rgba(131, 114, 178, 0.24);
+  border-color:rgba(108, 96, 142, 0.24);
   background:
-    linear-gradient(180deg, rgba(77, 62, 108, 0.28), rgba(24, 22, 34, 0.32)),
+    linear-gradient(180deg, rgba(56, 52, 74, 0.38), rgba(21, 22, 31, 0.56)),
     linear-gradient(180deg, rgba(11,15,20,0.9), rgba(8,11,15,0.96));
   box-shadow:
     inset 0 0 0 1px rgba(255,255,255,0.015),
-    inset 0 1px 0 rgba(198, 182, 231, 0.05);
+    inset 0 1px 0 rgba(170, 160, 198, 0.05);
   transform:scale(0.95);
   transform-origin:left center;
   position:relative;
@@ -814,6 +843,100 @@ select option:checked{
 .reco-pick-secondary{
   font-size:9px;
   color:#ece4fb;
+}
+
+.alt-toggle{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:8px 10px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.06);
+  background:rgba(255,255,255,0.02);
+  color:#dce2ea;
+  cursor:pointer;
+}
+
+.alt-toggle-copy{
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:0.9px;
+  text-transform:uppercase;
+}
+
+.alt-toggle-count{
+  min-width:20px;
+  height:20px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:999px;
+  background:rgba(255,255,255,0.06);
+  color:#f0f4fa;
+  font-size:10px;
+  font-weight:900;
+}
+
+.alt-toggle-chevron{
+  margin-left:auto;
+  width:10px;
+  height:10px;
+  border-right:2px solid rgba(228,232,240,0.8);
+  border-bottom:2px solid rgba(228,232,240,0.8);
+  transform:rotate(45deg);
+  transition:transform 0.18s ease;
+}
+
+.alt-toggle.open .alt-toggle-chevron{
+  transform:rotate(-135deg) translate(-2px, 2px);
+}
+
+.alt-drawer{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  padding:8px 9px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,0.05);
+  background:linear-gradient(180deg, rgba(13,17,24,0.92), rgba(8,11,15,0.98));
+}
+
+.alt-drawer-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:10px;
+  align-items:center;
+  padding:8px 9px;
+  border-radius:12px;
+  background:rgba(255,255,255,0.025);
+}
+
+.alt-drawer-copy{
+  min-width:0;
+}
+
+.alt-drawer-label{
+  font-size:10px;
+  font-weight:800;
+  color:#eef3f8;
+}
+
+.alt-drawer-meta{
+  margin-top:2px;
+  font-size:9px;
+  color:#aeb8c5;
+}
+
+.alt-drawer-odds{
+  min-width:44px;
+  padding:7px 8px;
+  border-radius:10px;
+  text-align:center;
+  color:#dce8f6;
+  background:rgba(255,255,255,0.05);
+  font-size:10px;
+  font-weight:900;
 }
 
 .reco-meter{
@@ -1428,16 +1551,22 @@ select option:checked{
 
 @media (max-width: 980px){
   .topbar{
-    grid-template-columns:1fr;
-    justify-items:start;
-    gap:12px;
+    grid-template-columns:minmax(0,1fr);
+    justify-items:stretch;
+    gap:14px;
     padding:14px 16px calc(12px + env(safe-area-inset-top, 0px));
+    border:1px solid rgba(255,255,255,0.05);
+    border-radius:28px;
+    margin:12px 14px 0;
   }
 
   .main-nav{
-    justify-content:flex-start;
-    flex-wrap:wrap;
+    justify-content:stretch;
     width:100%;
+  }
+
+  .top-actions{
+    display:none;
   }
 
   .dashboard{
@@ -1494,10 +1623,10 @@ select option:checked{
     position:static;
     top:auto;
     z-index:auto;
-    gap:10px;
-    padding:12px 12px calc(10px + env(safe-area-inset-top, 0px));
+    gap:14px;
+    padding:14px 14px calc(12px + env(safe-area-inset-top, 0px));
     border-bottom-color:rgba(255,255,255,0.04);
-    background:rgba(6,8,12,0.96);
+    background:rgba(8,11,15,0.98);
     backdrop-filter:none;
   }
   .dashboard{ padding:12px 10px calc(18px + env(safe-area-inset-bottom, 0px)); }
@@ -1510,19 +1639,36 @@ select option:checked{
   .ticket-tabbar{ padding-left:12px; padding-right:12px; }
   .hero-title{ font-size:20px; }
   .detail-title{ font-size:20px; }
-  .brand-logo{ width:176px; }
+  .brand-lockup{
+    gap:12px;
+  }
+  .brand-mark{
+    width:56px;
+    height:56px;
+    flex-basis:56px;
+    border-radius:18px;
+  }
+  .brand-word{
+    font-size:30px;
+  }
+  .brand-tagline{
+    margin-top:6px;
+    font-size:8px;
+    letter-spacing:4px;
+  }
   .main-nav{
     width:100%;
     gap:6px;
-    padding:6px;
-    border-radius:16px;
+    padding:7px;
+    border-radius:22px;
+    background:rgba(18,24,32,0.94);
   }
   .navlink{
     flex:1 1 0;
     min-width:0;
-    padding:10px 12px;
-    border-radius:12px;
-    font-size:13px;
+    padding:12px 12px;
+    border-radius:18px;
+    font-size:15px;
   }
   .iconbtn{
     width:40px;
@@ -1583,61 +1729,80 @@ select option:checked{
     gap:6px;
   }
   .match-row{
-    gap:6px;
-    padding:8px;
-    border-radius:14px;
+    gap:8px;
+    padding:10px;
+    border-radius:18px;
   }
   .match-time{
-    flex:0 0 38px;
-    font-size:9px;
+    flex:0 0 42px;
+    font-size:10px;
   }
   .match-name{
-    font-size:11px;
+    font-size:13px;
     line-height:1.25;
   }
   .match-date,
   .match-link,
   .league-chip{
-    font-size:8px;
+    font-size:9px;
   }
   .reco-pill{
-    gap:6px;
-    padding:5px 6px;
+    gap:8px;
+    padding:8px 9px;
   }
   .reco-pill-secondary{
-    gap:4px;
-    padding:3px 5px;
+    gap:6px;
+    padding:6px 7px;
   }
   .reco-label{
-    font-size:9px;
-  }
-  .reco-pick{
     font-size:10px;
   }
+  .reco-pick{
+    font-size:12px;
+  }
   .reco-pick-secondary{
-    font-size:8px;
+    font-size:10px;
   }
   .reco-meter-bar{
-    height:6px;
+    height:7px;
   }
   .reco-meter-bar-secondary{
-    height:3px;
+    height:4px;
   }
   .reco-meter-label{
-    font-size:8px;
-  }
-  .reco-meter-label-secondary{
-    font-size:7px;
-  }
-  .reco-odds{
-    min-width:48px;
-    padding:5px 6px;
     font-size:9px;
   }
+  .reco-meter-label-secondary{
+    font-size:8px;
+  }
+  .reco-odds{
+    min-width:54px;
+    padding:7px 8px;
+    font-size:10px;
+  }
   .reco-odds-secondary{
-    min-width:38px;
-    padding:3px 4px;
-    font-size:7px;
+    min-width:44px;
+    padding:5px 6px;
+    font-size:8px;
+  }
+  .alt-toggle{
+    padding:9px 10px;
+  }
+  .alt-toggle-copy{
+    font-size:10px;
+  }
+  .alt-drawer-row{
+    padding:9px 10px;
+  }
+  .alt-drawer-label{
+    font-size:11px;
+  }
+  .alt-drawer-meta{
+    font-size:9px;
+  }
+  .alt-drawer-odds{
+    min-width:48px;
+    font-size:9px;
   }
   .detail-panel{
     gap:10px;
