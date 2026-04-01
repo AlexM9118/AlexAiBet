@@ -165,9 +165,29 @@ function hasLiveSelectionPrices(match) {
   return Object.values(match?.selectionIndex || {}).some((entry) => Number.isFinite(Number(entry?.price)));
 }
 
+function hasPrimaryMarketPrices(match) {
+  const keys = [
+    "BTTS|YES",
+    "BTTS|NO",
+    "Goals 1.5|OVER",
+    "Goals 1.5|UNDER",
+    "Goals 2.5|OVER",
+    "Goals 2.5|UNDER",
+    "Goals 3.5|OVER",
+    "Goals 3.5|UNDER",
+    "Goals 4.5|OVER",
+    "Goals 4.5|UNDER",
+    "1X2|HOME",
+    "1X2|DRAW",
+    "1X2|AWAY"
+  ];
+  return keys.some((key) => Number.isFinite(Number(match?.selectionIndex?.[key]?.price)));
+}
+
 function getRecommendationGapMessage(match) {
   const hist = getHistEntry(match?.fixtureId);
-  const hasPrices = hasLiveSelectionPrices(match);
+  const hasPrices = hasPrimaryMarketPrices(match);
+  const hasAnyPrices = hasLiveSelectionPrices(match);
   const noLeagueMapping = String(hist?.note || "").toLowerCase().includes("no league mapping");
   const categoryName = formatCategoryName(match?.categoryName || "");
   const tournamentName = formatLeagueName(match?.tournamentName || "");
@@ -177,7 +197,9 @@ function getRecommendationGapMessage(match) {
     return `Cotele live lipsesc momentan in feed, iar analiza pentru ${leagueName || "aceasta liga"} este in curs de extindere.`;
   }
   if (!hasPrices) {
-    return "Cotele live lipsesc momentan in feed pentru acest meci.";
+    return hasAnyPrices
+      ? "Lipsesc cotele live relevante pentru pietele principale ale acestui meci."
+      : "Cotele live lipsesc momentan in feed pentru acest meci.";
   }
   if (noLeagueMapping) {
     return `Analiza pentru ${leagueName || "aceasta liga"} este in curs de extindere.`;
