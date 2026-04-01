@@ -201,8 +201,10 @@ function getRecommendationGapMessage(match) {
     return `Cotele live lipsesc momentan in feed, iar analiza pentru ${leagueName || "aceasta liga"} este in curs de extindere.`;
   }
   if (!hasPrices) {
-    if (hasHistory && hasAnyPrices) {
-      return "Avem forma istorica pentru acest meci, dar lipsesc cotele live utile pentru o recomandare principala.";
+    if (hasHistory) {
+      return hasAnyPrices
+        ? "Avem forma istorica pentru acest meci, dar lipsesc cotele live utile pentru o recomandare principala."
+        : "Avem forma istorica pentru acest meci, dar feed-ul live nu livreaza inca preturi utile pentru pariul principal.";
     }
     return hasAnyPrices
       ? "Lipsesc cotele live relevante pentru pietele principale ale acestui meci."
