@@ -721,6 +721,12 @@ select option:checked{
   align-items:center;
   gap:7px;
   min-width:0;
+  padding:9px 10px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,0.04);
+  background:
+    linear-gradient(180deg, rgba(22,28,36,0.94), rgba(13,17,23,0.98)),
+    linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
 }
 
 .match-time{
@@ -1732,6 +1738,10 @@ select option:checked{
     gap:8px;
     padding:10px;
     border-radius:18px;
+  }
+  .match-main{
+    padding:10px 11px;
+    border-radius:16px;
   }
   .match-time{
     flex:0 0 42px;

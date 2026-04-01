@@ -169,7 +169,9 @@ function getRecommendationGapMessage(match) {
   const hist = getHistEntry(match?.fixtureId);
   const hasPrices = hasLiveSelectionPrices(match);
   const noLeagueMapping = String(hist?.note || "").toLowerCase().includes("no league mapping");
-  const leagueName = formatLeagueName(match?.tournamentName || "");
+  const categoryName = formatCategoryName(match?.categoryName || "");
+  const tournamentName = formatLeagueName(match?.tournamentName || "");
+  const leagueName = [categoryName, tournamentName].filter(Boolean).join(" ");
 
   if (!hasPrices && noLeagueMapping) {
     return `Cotele live lipsesc momentan in feed, iar analiza pentru ${leagueName || "aceasta liga"} este in curs de extindere.`;
@@ -684,12 +686,19 @@ function renderMatchesList() {
         event.stopPropagation();
         const fixtureId = String(button.getAttribute("data-alt-toggle") || "");
         if (!fixtureId) return;
+        const drawer = button.nextElementSibling;
+        const isOpen = expandedAltFixtures.has(fixtureId);
         if (expandedAltFixtures.has(fixtureId)) {
           expandedAltFixtures.delete(fixtureId);
         } else {
           expandedAltFixtures.add(fixtureId);
         }
-        renderMatchesList();
+        button.classList.toggle("open", !isOpen);
+        button.setAttribute("aria-expanded", String(!isOpen));
+        if (drawer) {
+          drawer.hidden = isOpen;
+          drawer.classList.toggle("open", !isOpen);
+        }
       });
     });
     row.querySelectorAll(".alt-drawer").forEach((drawer) => {
