@@ -365,11 +365,30 @@ function pickSecondaryRecommendation(scored, primary) {
   if (!primary || !scored?.length) return null;
   const primaryFamily = marketFamily(primary);
   const primaryLine = candidateLineLabel(primary);
+  const primaryScore = scored.find(({ candidate }) => isSameRecommendation(candidate, primary))?.score ?? scored[0]?.score ?? 0;
   const prefersSideMarkets = primaryFamily === "GOALS" || primaryFamily === "BTTS";
 
+  const isPlanBEligible = (candidate, score, mode = "default") => {
+    if (!candidate || isSameRecommendation(candidate, primary)) return false;
+
+    const probabilityGap = candidate.p - primary.p;
+    const oddsGap = candidate.bookOdds - primary.bookOdds;
+
+    if (score > primaryScore + 0.02) return false;
+    if (probabilityGap > 0.035) return false;
+
+    if (mode !== "safe") {
+      if (probabilityGap > 0.012 && oddsGap < -0.02) return false;
+      if (candidate.bookOdds < primary.bookOdds - 0.08) return false;
+    } else {
+      if (candidate.bookOdds < primary.bookOdds - 0.12) return false;
+    }
+
+    return true;
+  };
+
   const sideMarketAlt = prefersSideMarkets ? scored.find(({ candidate, score }) => (
-    candidate &&
-    !isSameRecommendation(candidate, primary) &&
+    isPlanBEligible(candidate, score) &&
     ["CORNERS", "CARDS"].includes(marketFamily(candidate)) &&
     candidate.bookOdds >= 1.24 &&
     score >= scored[0].score - 0.34
@@ -378,8 +397,7 @@ function pickSecondaryRecommendation(scored, primary) {
   if (sideMarketAlt) return sideMarketAlt;
 
   const bttsAlt = primaryFamily === "GOALS" ? scored.find(({ candidate, score }) => (
-    candidate &&
-    !isSameRecommendation(candidate, primary) &&
+    isPlanBEligible(candidate, score) &&
     marketFamily(candidate) === "BTTS" &&
     candidate.bookOdds >= 1.24 &&
     score >= scored[0].score - 0.3
@@ -388,8 +406,7 @@ function pickSecondaryRecommendation(scored, primary) {
   if (bttsAlt) return bttsAlt;
 
   const oneXTwoAlt = primaryFamily === "GOALS" || primaryFamily === "BTTS" ? scored.find(({ candidate, score }) => (
-    candidate &&
-    !isSameRecommendation(candidate, primary) &&
+    isPlanBEligible(candidate, score) &&
     marketFamily(candidate) === "1X2" &&
     candidate.bookOdds >= 1.26 &&
     score >= scored[0].score - 0.26
@@ -398,8 +415,7 @@ function pickSecondaryRecommendation(scored, primary) {
   if (oneXTwoAlt) return oneXTwoAlt;
 
   const strongFamilyAlt = scored.find(({ candidate, score }) => (
-    candidate &&
-    !isSameRecommendation(candidate, primary) &&
+    isPlanBEligible(candidate, score) &&
     marketFamily(candidate) !== primaryFamily &&
     candidate.bookOdds >= 1.24 &&
     score >= scored[0].score - 0.28
@@ -408,8 +424,7 @@ function pickSecondaryRecommendation(scored, primary) {
   if (strongFamilyAlt) return strongFamilyAlt;
 
   const strongLineAlt = scored.find(({ candidate, score }) => (
-    candidate &&
-    !isSameRecommendation(candidate, primary) &&
+    isPlanBEligible(candidate, score, "safe") &&
     candidateLineLabel(candidate) !== primaryLine &&
     candidate.bookOdds >= 1.24 &&
     score >= scored[0].score - 0.2
@@ -417,7 +432,7 @@ function pickSecondaryRecommendation(scored, primary) {
 
   if (strongLineAlt) return strongLineAlt;
 
-  return scored.find(({ candidate }) => candidate && !isSameRecommendation(candidate, primary))?.candidate || null;
+  return scored.find(({ candidate, score }) => isPlanBEligible(candidate, score, "safe"))?.candidate || null;
 }
 
 export function getRecommendationConfidence(candidate) {
