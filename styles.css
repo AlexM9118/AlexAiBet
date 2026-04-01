@@ -1472,8 +1472,14 @@ select option:checked{
 
 @media (max-width: 640px){
   .topbar{
+    position:static;
+    top:auto;
+    z-index:auto;
     gap:10px;
     padding:12px 12px calc(10px + env(safe-area-inset-top, 0px));
+    border-bottom-color:rgba(255,255,255,0.04);
+    background:rgba(6,8,12,0.96);
+    backdrop-filter:none;
   }
   .dashboard{ padding:12px 10px calc(18px + env(safe-area-inset-bottom, 0px)); }
   .panel-hero,
