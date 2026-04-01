@@ -27,6 +27,12 @@ function getNormalizedMarketProbability(match, market, sel) {
   let outcomes = [];
   if (market === "1X2") {
     outcomes = match?.featuredMarkets?.ft1x2?.outcomes || [];
+  } else if (market === "Double Chance") {
+    outcomes = [
+      getBookSelection(match, "Double Chance", "1X") ? { key: "1X", price: getBookSelection(match, "Double Chance", "1X")?.price } : null,
+      getBookSelection(match, "Double Chance", "12") ? { key: "12", price: getBookSelection(match, "Double Chance", "12")?.price } : null,
+      getBookSelection(match, "Double Chance", "X2") ? { key: "X2", price: getBookSelection(match, "Double Chance", "X2")?.price } : null
+    ].filter(Boolean);
   } else if (market === "BTTS") {
     outcomes = match?.featuredMarkets?.btts?.outcomes || [];
   } else {
@@ -45,6 +51,9 @@ function getNormalizedMarketProbability(match, market, sel) {
 export function pickDisplayLabel(pick) {
   if (pick.market === "1X2") {
     return { HOME: "Victorie gazde", DRAW: "Egal", AWAY: "Victorie oaspeti" }[pick.sel] || "1X2";
+  }
+  if (pick.market === "Double Chance") {
+    return { "1X": "1X", "12": "12", "X2": "X2" }[pick.sel] || "Double Chance";
   }
   if (pick.market === "BTTS") {
     return pick.sel === "YES" ? "Ambele marcheaza" : "Ambele marcheaza - Nu";
@@ -68,6 +77,13 @@ function pickReasonText(pick) {
       HOME: "Modelul de goluri favorizeaza echipa gazda.",
       DRAW: "Distributia de scor sugereaza un meci echilibrat.",
       AWAY: "Modelul ofera avantaj echipei oaspete."
+    }[pick.sel] || "Selectie generata de modelul SAFE.";
+  }
+  if (pick.market === "Double Chance") {
+    return {
+      "1X": "Modelul vede gazdele suficient de solide pentru a evita infrangerea.",
+      "12": "Modelul vede un meci putin probabil sa se incheie egal.",
+      "X2": "Modelul vede oaspetii suficient de solizi pentru a evita infrangerea."
     }[pick.sel] || "Selectie generata de modelul SAFE.";
   }
   if (pick.market === "BTTS") {
@@ -171,6 +187,20 @@ function getMarketProfile(candidate) {
       baseBonus: -0.08
     };
   }
+  if (candidate.market === "Double Chance") {
+    return {
+      category: "DOUBLE_CHANCE",
+      minProb: 0.68,
+      minOdds: 1.25,
+      idealOdds: 1.36,
+      probWeight: 2.95,
+      edgeWeight: 1.45,
+      lowOddsPenalty: 4.8,
+      highOddsPenalty: 1.1,
+      weakProbPenalty: 2.4,
+      baseBonus: 0.06
+    };
+  }
   if (candidate.market === "BTTS" || String(candidate.market).startsWith("Goals ")) {
     return {
       category: "GOALS",
@@ -218,8 +248,17 @@ function scoreMarketFit(candidate) {
 
   if (candidate.market === "1X2") {
     if (candidate.sel === "DRAW") score -= 0.12;
+    if (candidate.sel !== "DRAW" && candidate.p >= 0.64 && candidate.bookOdds >= 1.25 && candidate.bookOdds <= 1.58) score += 0.28;
     if (candidate.p >= 0.68 && candidate.bookOdds >= 1.28 && candidate.bookOdds <= 1.62) score += 0.22;
     if (candidate.bookOdds < 1.24) score -= 0.18;
+    return score;
+  }
+
+  if (candidate.market === "Double Chance") {
+    if ((candidate.sel === "1X" || candidate.sel === "X2") && candidate.bookOdds >= 1.25 && candidate.bookOdds <= 1.48) score += 0.28;
+    if (candidate.sel === "12") score -= 0.18;
+    if (candidate.bookOdds < 1.24) score -= 0.22;
+    if (candidate.p >= 0.74 && candidate.edge >= 0.01) score += 0.12;
     return score;
   }
 
@@ -246,7 +285,7 @@ function scoreMarketFit(candidate) {
     if (candidate.sel === "OVER" && line <= 1.5 && candidate.bookOdds < 1.26) score -= 0.34;
     if (candidate.sel === "OVER" && line <= 1.5 && candidate.bookOdds >= 1.26 && candidate.bookOdds < 1.32) score -= 0.16;
     if (candidate.sel === "OVER" && line <= 1.5 && candidate.bookOdds >= 1.32 && candidate.bookOdds <= 1.42) score -= 0.08;
-    if (candidate.sel === "OVER" && line <= 1.5) score -= 0.08;
+    if (candidate.sel === "OVER" && line <= 1.5) score -= 0.14;
     if (candidate.sel === "OVER" && line === 2.5 && candidate.bookOdds >= 1.28 && candidate.bookOdds <= 1.56) score += 0.12;
     if (candidate.sel === "UNDER" && line === 2.5 && candidate.bookOdds >= 1.34 && candidate.bookOdds <= 1.52) score += 0.08;
     return score;
@@ -276,6 +315,7 @@ function scoreMarketFit(candidate) {
 function marketFamily(candidate) {
   if (!candidate) return "OTHER";
   if (candidate.market === "1X2") return "1X2";
+  if (candidate.market === "Double Chance") return "DOUBLE_CHANCE";
   if (candidate.market === "BTTS") return "Ambele marcheaza";
   if (String(candidate.market).startsWith("Goals ")) return "GOALS";
   if (String(candidate.market).startsWith("Corners ")) return "CORNERS";
@@ -302,7 +342,7 @@ function candidateScore(candidate) {
 }
 
 function candidateLineLabel(candidate) {
-  if (candidate.market === "BTTS" || candidate.market === "1X2") return candidate.market;
+  if (candidate.market === "BTTS" || candidate.market === "1X2" || candidate.market === "Double Chance") return `${candidate.market}|${candidate.sel}`;
   return `${candidate.market}|${candidate.sel}`;
 }
 
@@ -407,7 +447,7 @@ function pickSecondaryRecommendation(scored, primary) {
 
   const oneXTwoAlt = primaryFamily === "GOALS" || primaryFamily === "BTTS" ? scored.find(({ candidate, score }) => (
     isPlanBEligible(candidate, score) &&
-    marketFamily(candidate) === "1X2" &&
+    ["1X2", "DOUBLE_CHANCE"].includes(marketFamily(candidate)) &&
     candidate.bookOdds >= 1.26 &&
     score >= scored[0].score - 0.26
   ))?.candidate || null : null;
@@ -488,6 +528,15 @@ export function getCandidatesForMatch(match, getHistEntry, minProbability = 0.58
       });
     }
 
+    const doubleChanceCandidates = [
+      { sel: "1X", probability: oneXTwo.home + oneXTwo.draw },
+      { sel: "12", probability: oneXTwo.home + oneXTwo.away },
+      { sel: "X2", probability: oneXTwo.draw + oneXTwo.away }
+    ];
+    for (const option of doubleChanceCandidates) {
+      candidates.push(buildCandidate(match, "Double Chance", option.sel, option.probability));
+    }
+
     const pYes = probBTTS(goals.lh, goals.la);
     const pNo = 1 - pYes;
     candidates.push(buildCandidate(match, "BTTS", pYes >= pNo ? "YES" : "NO", Math.max(pYes, pNo)));
@@ -547,6 +596,26 @@ function fallbackCandidatesFromOdds(match) {
       best.probability,
       "Recomandare de fallback bazata pe piata Ambele marcheaza disponibila in feed-ul curent."
     ));
+  }
+
+  const doubleChance = normalizedProbabilities([
+    getBookSelection(match, "Double Chance", "1X") ? { key: "1X", price: getBookSelection(match, "Double Chance", "1X")?.price } : null,
+    getBookSelection(match, "Double Chance", "12") ? { key: "12", price: getBookSelection(match, "Double Chance", "12")?.price } : null,
+    getBookSelection(match, "Double Chance", "X2") ? { key: "X2", price: getBookSelection(match, "Double Chance", "X2")?.price } : null
+  ].filter(Boolean));
+  if (doubleChance.length === 3) {
+    const best = doubleChance
+      .filter((candidate) => candidate.key !== "12")
+      .sort((a, b) => b.probability - a.probability)[0];
+    if (best) {
+      candidates.push(buildFallbackCandidate(
+        match,
+        "Double Chance",
+        best.key,
+        best.probability,
+        "Recomandare de fallback bazata pe piata Double Chance disponibila in feed-ul curent."
+      ));
+    }
   }
 
   for (const line of GOALS_LINES) {

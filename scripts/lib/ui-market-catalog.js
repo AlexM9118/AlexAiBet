@@ -19,6 +19,16 @@ const FEATURED_MARKET_DEFINITIONS = {
       { key: "YES", label: "Yes", outcomeId: "104" },
       { key: "NO", label: "No", outcomeId: "105" }
     ]
+  },
+  doubleChance: {
+    key: "doubleChance",
+    label: "Double Chance (FT)",
+    marketId: "101902",
+    outcomes: [
+      { key: "1X", label: "1X", outcomeId: "101902" },
+      { key: "12", label: "12", outcomeId: "101903" },
+      { key: "X2", label: "X2", outcomeId: "101904" }
+    ]
   }
 };
 
@@ -56,6 +66,27 @@ const RECOMMENDATION_MARKET_DEFINITIONS = [
     label: "BTTS NO",
     marketId: "104",
     outcomeId: "105"
+  },
+  {
+    market: "Double Chance",
+    selection: "1X",
+    label: "Double Chance 1X",
+    marketId: "101902",
+    outcomeId: "101902"
+  },
+  {
+    market: "Double Chance",
+    selection: "12",
+    label: "Double Chance 12",
+    marketId: "101902",
+    outcomeId: "101903"
+  },
+  {
+    market: "Double Chance",
+    selection: "X2",
+    label: "Double Chance X2",
+    marketId: "101902",
+    outcomeId: "101904"
   },
   {
     market: "Goals 1.5",
@@ -178,7 +209,8 @@ function buildFeaturedMarkets(rawMarkets) {
   const marketsById = indexMarkets(rawMarkets);
   return {
     ft1x2: normalizeFeaturedMarket(marketsById, FEATURED_MARKET_DEFINITIONS.ft1x2),
-    btts: normalizeFeaturedMarket(marketsById, FEATURED_MARKET_DEFINITIONS.btts)
+    btts: normalizeFeaturedMarket(marketsById, FEATURED_MARKET_DEFINITIONS.btts),
+    doubleChance: normalizeFeaturedMarket(marketsById, FEATURED_MARKET_DEFINITIONS.doubleChance)
   };
 }
 

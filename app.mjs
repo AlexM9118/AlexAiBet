@@ -169,6 +169,9 @@ function hasPrimaryMarketPrices(match) {
   const keys = [
     "BTTS|YES",
     "BTTS|NO",
+    "Double Chance|1X",
+    "Double Chance|12",
+    "Double Chance|X2",
     "Goals 1.5|OVER",
     "Goals 1.5|UNDER",
     "Goals 2.5|OVER",
@@ -192,11 +195,15 @@ function getRecommendationGapMessage(match) {
   const categoryName = formatCategoryName(match?.categoryName || "");
   const tournamentName = formatLeagueName(match?.tournamentName || "");
   const leagueName = [categoryName, tournamentName].filter(Boolean).join(" ");
+  const hasHistory = !!(hist?.homeStats && hist?.awayStats);
 
   if (!hasPrices && noLeagueMapping) {
     return `Cotele live lipsesc momentan in feed, iar analiza pentru ${leagueName || "aceasta liga"} este in curs de extindere.`;
   }
   if (!hasPrices) {
+    if (hasHistory && hasAnyPrices) {
+      return "Avem forma istorica pentru acest meci, dar lipsesc cotele live utile pentru o recomandare principala.";
+    }
     return hasAnyPrices
       ? "Lipsesc cotele live relevante pentru pietele principale ale acestui meci."
       : "Cotele live lipsesc momentan in feed pentru acest meci.";
@@ -210,6 +217,7 @@ function getRecommendationGapMessage(match) {
 function marketFamilyLabel(recommendation) {
   if (!recommendation) return "N/A";
   if (recommendation.market === "1X2") return "1X2";
+  if (recommendation.market === "Double Chance") return "Double Chance";
   if (recommendation.market === "BTTS") return "Ambele marcheaza";
   if (String(recommendation.market).startsWith("Goals ")) return "Goluri";
   if (String(recommendation.market).startsWith("Corners ")) return "Cornere";
