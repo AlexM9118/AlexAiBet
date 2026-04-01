@@ -159,6 +159,27 @@ function getMatchRecommendationPair(fixtureId) {
   return UI.matchRecommendationPairs.get(String(fixtureId)) || { primary: null, secondary: null };
 }
 
+function hasLiveSelectionPrices(match) {
+  return Object.values(match?.selectionIndex || {}).some((entry) => Number.isFinite(Number(entry?.price)));
+}
+
+function getRecommendationGapMessage(match) {
+  const hist = getHistEntry(match?.fixtureId);
+  const hasPrices = hasLiveSelectionPrices(match);
+  const noLeagueMapping = String(hist?.note || "").toLowerCase().includes("no league mapping");
+
+  if (!hasPrices && noLeagueMapping) {
+    return "Cotele live lipsesc momentan in feed, iar analiza pentru aceasta liga este in curs de extindere.";
+  }
+  if (!hasPrices) {
+    return "Cotele live lipsesc momentan in feed pentru acest meci.";
+  }
+  if (noLeagueMapping) {
+    return "Analiza pentru aceasta liga este in curs de extindere.";
+  }
+  return "Momentan lipsesc suficiente date pentru o recomandare de incredere.";
+}
+
 function marketFamilyLabel(recommendation) {
   if (!recommendation) return "N/A";
   if (recommendation.market === "1X2") return "1X2";
@@ -616,7 +637,7 @@ function renderMatchesList() {
             }
           </div>
         ` : `
-          <div class="reco-empty">Momentan lipsesc suficiente date pentru o recomandare de incredere.</div>
+          <div class="reco-empty">${escapeHtml(getRecommendationGapMessage(match))}</div>
         `
       }
     `;
@@ -695,7 +716,7 @@ function renderExplainability(match, recommendation) {
 function renderPrimaryPick(match, recommendation) {
   if (!recommendation) {
     el("primaryPick").textContent = "Fara recomandare principala";
-    el("primaryPickMeta").textContent = "Meciul ramane disponibil pentru consultare, dar nu fortam o selectie fara suport bun.";
+    el("primaryPickMeta").textContent = getRecommendationGapMessage(match);
     el("primaryPickNote").textContent = "Poti verifica 1X2 si Ambele marcheaza sau reveni la lista principala pentru alte meciuri.";
     return;
   }
