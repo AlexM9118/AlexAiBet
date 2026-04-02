@@ -638,14 +638,19 @@ function renderMatchesList() {
     row.className = "match-row";
     row.innerHTML = `
       <div class="match-main">
-        <div class="match-time">${escapeHtml(fmtClock(match.startTime))}</div>
-        <div class="match-clubs">
+        <div class="match-main-copy">
+          <div class="match-kicker-row">
+            <div class="match-kicker">Eveniment</div>
+            <div class="league-chip league-chip-inline">${escapeHtml(formatCategoryName(match.categoryName))} • ${escapeHtml(formatLeagueName(match.tournamentName))}</div>
+          </div>
           <div class="match-name">${escapeHtml(match.home)} vs ${escapeHtml(match.away)}</div>
-          <div class="match-date">${escapeHtml(fmtDateLocal(match.startTime))}</div>
+          <div class="match-meta-row">
+            <div class="match-time-chip">${escapeHtml(fmtClock(match.startTime))}</div>
+            <div class="match-date">${escapeHtml(fmtDateLocal(match.startTime))}</div>
+          </div>
           <div class="match-link">Deschide analiza meciului</div>
         </div>
       </div>
-      <div class="league-chip">${escapeHtml(formatCategoryName(match.categoryName))} • ${escapeHtml(formatLeagueName(match.tournamentName))}</div>
       ${
         recommendation ? `
           <div class="reco-stack">

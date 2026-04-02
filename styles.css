@@ -671,7 +671,7 @@ select option:checked{
 
 .match-list-head{
   display:grid;
-  grid-template-columns:minmax(300px,1.35fr) minmax(150px,0.75fr) minmax(280px,1fr);
+  grid-template-columns:minmax(300px,1.2fr) minmax(280px,1fr);
   gap:10px;
   padding:10px 14px 6px;
   color:var(--muted-soft);
@@ -681,7 +681,8 @@ select option:checked{
   text-transform:uppercase;
 }
 
-.head-center{ text-align:left; }
+.match-list-head > :nth-child(2){ display:none; }
+.head-center{ display:none; }
 .head-right{ text-align:left; }
 
 .match-feed{
@@ -693,7 +694,7 @@ select option:checked{
 
 .match-row{
   display:grid;
-  grid-template-columns:minmax(300px,1.35fr) minmax(150px,0.75fr) minmax(280px,1fr);
+  grid-template-columns:minmax(300px,1.2fr) minmax(280px,1fr);
   gap:8px;
   align-items:center;
   padding:6px 8px;
@@ -719,8 +720,7 @@ select option:checked{
 
 .match-main{
   display:flex;
-  align-items:center;
-  gap:7px;
+  align-items:stretch;
   min-width:0;
   padding:9px 10px;
   border-radius:14px;
@@ -734,16 +734,33 @@ select option:checked{
     0 10px 24px rgba(0,0,0,0.18);
 }
 
-.match-time{
-  flex:0 0 44px;
-  font-size:10px;
-  font-weight:900;
-  color:#ffd3d6;
-  letter-spacing:0.3px;
+.match-main-copy{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
 }
 
-.match-clubs{
+.match-kicker-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
   min-width:0;
+}
+
+.match-kicker{
+  display:inline-flex;
+  align-items:center;
+  width:max-content;
+  padding:4px 8px;
+  border-radius:999px;
+  background:rgba(255,255,255,0.08);
+  color:#fff2f3;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:1px;
+  text-transform:uppercase;
 }
 
 .match-name{
@@ -753,8 +770,28 @@ select option:checked{
   letter-spacing:0.1px;
 }
 
+.match-meta-row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+  flex-wrap:wrap;
+}
+
+.match-time-chip{
+  display:inline-flex;
+  align-items:center;
+  width:max-content;
+  padding:4px 7px;
+  border-radius:999px;
+  background:rgba(255,255,255,0.1);
+  color:#ffd3d6;
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:0.3px;
+}
+
 .match-date{
-  margin-top:1px;
   color:#efc3c7;
   font-size:9px;
   font-weight:700;
@@ -780,6 +817,11 @@ select option:checked{
   color:#c9d2de;
   font-size:9px;
   font-weight:700;
+}
+
+.league-chip-inline{
+  flex:0 1 auto;
+  min-width:0;
 }
 
 .reco-stack{
@@ -1604,7 +1646,7 @@ select option:checked{
   }
 
   .match-main{
-    align-items:flex-start;
+    align-items:stretch;
   }
 
   .detail-summary,
@@ -1787,13 +1829,24 @@ select option:checked{
     padding:10px 11px;
     border-radius:16px;
   }
-  .match-time{
-    flex:0 0 42px;
-    font-size:10px;
+  .match-kicker-row{
+    gap:6px;
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .match-kicker{
+    font-size:8px;
+    letter-spacing:0.9px;
   }
   .match-name{
     font-size:13px;
     line-height:1.25;
+  }
+  .match-meta-row{
+    gap:6px;
+  }
+  .match-time-chip{
+    font-size:9px;
   }
   .match-date,
   .match-link,
