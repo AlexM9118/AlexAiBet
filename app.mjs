@@ -947,19 +947,24 @@ function renderTicketVariants(day) {
   const matches = filteredMatches();
   const recommendations = matches.map((match) => getMatchRecommendation(match.fixtureId)).filter(Boolean);
 
-  el("recSub").textContent = `${fmtDayLong(day)} • ${recommendations.length} selectii disponibile pentru bilete`;
+  el("recSub").textContent = `${fmtDayLong(day)} • ${recommendations.length} selectii disponibile pentru Focusul zilei`;
 
   if (!recommendations.length) {
-    viewer.innerHTML = `<div class="ticket-empty">Nu exista suficiente recomandari solide pentru a construi bilete in filtrul curent.</div>`;
+    viewer.innerHTML = `<div class="ticket-empty">Nu exista suficiente recomandari solide pentru a grupa Focusul zilei in filtrul curent.</div>`;
     return;
   }
 
   const renderedTickets = buildDisplayedTickets(matches, getHistEntry);
   for (const config of TICKET_CONFIGS) {
+    const tabTicket = renderedTickets.get(config.key);
+    const tabPct = tabTicket ? pctRounded(tabTicket.combinedProbability) : "—";
     const button = document.createElement("button");
     button.className = "ticket-pill";
     button.type = "button";
-    button.textContent = config.name;
+    button.innerHTML = `
+      <span class="ticket-pill-name">${escapeHtml(config.name)}</span>
+      <span class="ticket-pill-meta">${escapeHtml(tabPct)}</span>
+    `;
     button.classList.toggle("active", current.ticketKey === config.key);
     button.addEventListener("click", () => {
       current.ticketKey = config.key;
@@ -982,22 +987,24 @@ function renderTicketVariants(day) {
     article.innerHTML = `
       <div class="ticket-card-head">
         <div class="ticket-card-copy">
-          <div class="ticket-kicker">Bilet tinta</div>
+          <div class="ticket-kicker">Focusul zilei</div>
           <div class="ticket-name">${escapeHtml(config.name)}</div>
+          <div class="ticket-badge">${escapeHtml(config.badge || "")}</div>
           <div class="ticket-desc">${escapeHtml(config.desc)}</div>
         </div>
         <div class="ticket-target">
-          <span class="ticket-target-label">Tinta</span>
+          <span class="ticket-target-label">Cota grupata</span>
           <span class="ticket-target-value">${fmtOdds(config.target)}</span>
         </div>
       </div>
-      <div class="ticket-empty">Nu am gasit o combinatie suficient de solida pentru aceasta tinta in filtrul curent.</div>
+      <div class="ticket-empty">Nu am gasit o combinatie suficient de solida pentru acest profil in filtrul curent.</div>
     `;
     viewer.appendChild(article);
     return;
   }
 
   const risk = getRiskProfile(ticket.avgP);
+  const combinedPct = pctRounded(ticket.combinedProbability);
   const picksMarkup = ticket.picks.map((pick) => `
     <div class="ticket-pick">
       <div class="ticket-pick-main">
@@ -1011,13 +1018,15 @@ function renderTicketVariants(day) {
   article.innerHTML = `
     <div class="ticket-card-head">
       <div class="ticket-card-copy">
-        <div class="ticket-kicker">Bilet tinta</div>
+        <div class="ticket-kicker">Focusul zilei</div>
         <div class="ticket-name">${escapeHtml(config.name)}</div>
+        <div class="ticket-badge">${escapeHtml(config.badge || "")}</div>
         <div class="ticket-desc">${escapeHtml(config.desc)}</div>
       </div>
       <div class="ticket-target">
-        <span class="ticket-target-label">Tinta / obtinut</span>
+        <span class="ticket-target-label">Cota grupata</span>
         <span class="ticket-target-value">${fmtOdds(ticket.totalOdds)}</span>
+        <span class="ticket-target-meta">${escapeHtml(`${combinedPct} reusita estimata`)}</span>
       </div>
     </div>
 
@@ -1030,17 +1039,17 @@ function renderTicketVariants(day) {
       <article class="ticket-stat">
         <div class="stat-label">Prob. medie</div>
         <div class="stat-value">${pctRounded(ticket.avgP)}</div>
-        <div class="stat-copy">${escapeHtml(risk.label)} • selectii sub 1.60</div>
+        <div class="stat-copy">${escapeHtml(risk.label)} • selectii curate pentru acest profil</div>
       </article>
       <article class="ticket-stat">
-        <div class="stat-label">Prob. bilet</div>
-        <div class="stat-value">${pctRounded(ticket.combinedProbability)}</div>
+        <div class="stat-label">Reusita estimata</div>
+        <div class="stat-value">${combinedPct}</div>
         <div class="stat-copy">${escapeHtml(risk.note)}</div>
       </article>
     </div>
 
     <div class="ticket-picks">${picksMarkup}</div>
-    <div class="ticket-cta-note">Biletul este afisat informativ, pe baza cotelor si selectiilor disponibile in sursa de date curenta.</div>
+    <div class="ticket-cta-note">Focusul zilei este afisat informativ, pe baza cotelor si selectiilor disponibile in sursa de date curenta.</div>
   `;
   viewer.appendChild(article);
 }

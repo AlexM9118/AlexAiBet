@@ -1390,6 +1390,9 @@ select option:checked{
 }
 
 .ticket-pill{
+  display:flex;
+  align-items:center;
+  gap:10px;
   padding:10px 12px;
   border-radius:12px;
   border:1px solid rgba(255,255,255,0.06);
@@ -1402,6 +1405,23 @@ select option:checked{
 .ticket-pill.active{
   border-color:rgba(255,255,255,0.14);
   background:linear-gradient(135deg, rgba(190,36,43,0.62), rgba(17,18,23,0.98));
+}
+
+.ticket-pill-name{
+  font-weight:900;
+}
+
+.ticket-pill-meta{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:52px;
+  padding:4px 8px;
+  border-radius:999px;
+  background:rgba(255,255,255,0.06);
+  color:#f2f6fb;
+  font-size:11px;
+  font-weight:900;
 }
 
 .ticket-viewer{
@@ -1458,6 +1478,16 @@ select option:checked{
   font-weight:900;
 }
 
+.ticket-badge{
+  width:max-content;
+  padding:4px 8px;
+  border-radius:999px;
+  background:rgba(255,255,255,0.05);
+  color:#dce4ef;
+  font-size:11px;
+  font-weight:800;
+}
+
 .ticket-desc{
   color:var(--muted);
   font-size:12px;
@@ -1483,6 +1513,14 @@ select option:checked{
   margin-top:3px;
   font-size:20px;
   font-weight:900;
+}
+
+.ticket-target-meta{
+  display:block;
+  margin-top:4px;
+  color:#cfe0d3;
+  font-size:11px;
+  font-weight:800;
 }
 
 .ticket-stats{
