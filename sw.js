@@ -1,5 +1,5 @@
-const STATIC_CACHE = "zbet-static-v6";
-const DATA_CACHE = "zbet-data-v6";
+const STATIC_CACHE = "zbet-static-v7";
+const DATA_CACHE = "zbet-data-v7";
 
 const STATIC_ASSETS = [
   "./",
@@ -45,6 +45,23 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+
+  if (request.mode === "navigate" || request.destination === "document") {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          const copy = response.clone();
+          caches.open(STATIC_CACHE).then((cache) => cache.put("./index.html", copy));
+          return response;
+        })
+        .catch(async () => {
+          const cached = await caches.match(request);
+          if (cached) return cached;
+          return caches.match("./index.html");
+        })
+    );
+    return;
+  }
 
   if (isDataRequest(url)) {
     event.respondWith(
