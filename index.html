@@ -26,7 +26,7 @@
 
     <nav class="main-nav" aria-label="Navigatie principala">
       <button class="navlink active" id="viewMatchesBtn" type="button">Meciuri</button>
-      <button class="navlink" id="viewTicketsBtn" type="button">Focus</button>
+      <button class="navlink" id="viewHistoryBtn" type="button">Istoric</button>
     </nav>
 
     <div class="top-actions">
@@ -195,19 +195,19 @@
         </div>
       </section>
 
-      <section class="panel ticket-panel" id="ticketsView" hidden>
+      <section class="panel ticket-panel" id="historyView" hidden>
         <div class="ticket-hero">
-          <div class="hero-kicker">Focusul zilei</div>
-          <div class="ticket-title" id="recTitle">3 moduri de a grupa cele mai bune selectii ale zilei</div>
-          <div class="ticket-subtitle" id="recSub">—</div>
+          <div class="hero-kicker">Istoric</div>
+          <div class="ticket-title" id="historyTitle">Rezultatele recomandarilor din zilele anterioare</div>
+          <div class="ticket-subtitle" id="historySub">—</div>
           <div class="status hero-status">
             <span class="dot" id="statusDot"></span>
             <span id="statusText">Ready</span>
           </div>
         </div>
 
-        <div class="ticket-tabbar" id="ticketTabs"></div>
-        <div class="ticket-viewer" id="ticketViewer"></div>
+        <div class="ticket-tabbar" id="historyTabs"></div>
+        <div class="ticket-viewer" id="historyViewer"></div>
       </section>
     </section>
   </main>

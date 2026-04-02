@@ -19,15 +19,13 @@ import {
   getCandidatesForMatch,
   buildTwoWayRows,
   buildConfidenceModel,
-  getRiskProfile,
-  getRecommendationConfidence,
-  buildDisplayedTickets,
-  TICKET_CONFIGS
+  getRecommendationConfidence
 } from "./js/recommendations.mjs";
 
 let UI = { index: null, leagues: [], matches: [], matchByFixtureId: new Map(), matchRecommendations: new Map(), matchRecommendationPairs: new Map() };
 let HIST = null;
-let current = { day: null, calendarMonth: null, leagueId: "all", fixtureId: null, ticketKey: "safe", view: "matches", leagueQuery: "" };
+let HISTORY_ARCHIVE = { days: [], itemsByDay: {} };
+let current = { day: null, calendarMonth: null, leagueId: "all", fixtureId: null, historyDay: null, view: "matches", leagueQuery: "" };
 const EMPTY_LEAGUE_WINDOW_DAYS = 7;
 const expandedAltFixtures = new Set();
 
@@ -322,6 +320,26 @@ function filteredMatches() {
     ));
 }
 
+function getRecentHistoryDays(windowDays = 7) {
+  const out = [];
+  const base = nowLocal();
+  for (let offset = 0; offset < windowDays; offset += 1) {
+    const date = new Date(base);
+    date.setHours(12, 0, 0, 0);
+    date.setDate(date.getDate() - offset);
+    out.push(date.toLocaleDateString("en-CA"));
+  }
+  return out;
+}
+
+async function getOptionalJson(path, fallback) {
+  try {
+    return await getJson(path);
+  } catch {
+    return fallback;
+  }
+}
+
 async function loadAll() {
   setStatus("Loading...");
   UI.index = await getJson("./data/ui/index.json");
@@ -330,6 +348,7 @@ async function loadAll() {
   const tournamentCatalog = await getJson("./data/oddspapi_tournaments.json");
   const tournamentConfig = await getJson("./scripts/oddspapi-tournament-ids.json");
   HIST = await getJson("./data/ui/history_stats.json");
+  HISTORY_ARCHIVE = await getOptionalJson("./data/ui/history_archive_index.json", { days: [], itemsByDay: {} });
 
   UI.matches = (matchesObj.matches || [])
     .map((match) => ({
@@ -364,6 +383,7 @@ async function loadAll() {
   UI.matchRecommendations = new Map(UI.matches.map((match) => [String(match.fixtureId), getMatchRecommendationPair(match.fixtureId).primary || buildMatchRecommendation(match, getHistEntry)]));
 
   current.day = pickDefaultDay(UI.index.days) || UI.matches[0]?.day || null;
+  current.historyDay = current.historyDay || getRecentHistoryDays()[0] || null;
   current.leagueId = UI.leagues.some((league) => league.id === current.leagueId) ? current.leagueId : "all";
   setStatus("Ready");
 }
@@ -458,7 +478,7 @@ function renderDayCalendar() {
         closeDayMenu();
         renderDaySel();
         renderMatchesList();
-        renderTicketVariants(current.day);
+        renderHistoryView();
         goBackToMatches();
       });
     }
@@ -520,7 +540,7 @@ function renderLeagueSel() {
       closeLeagueMenu();
       renderLeagueSel();
       renderMatchesList();
-      renderTicketVariants(current.day);
+      renderHistoryView();
       goBackToMatches();
     });
     menu.appendChild(item);
@@ -750,15 +770,15 @@ function renderMatchesList() {
 function setView(viewKey) {
   current.view = viewKey;
   const matchesVisible = current.view === "matches";
-  const ticketsVisible = current.view === "tickets";
+  const historyVisible = current.view === "history";
   const detailVisible = current.view === "detail";
 
   el("matchesView").hidden = !matchesVisible;
-  el("ticketsView").hidden = !ticketsVisible;
+  el("historyView").hidden = !historyVisible;
   el("detailView").hidden = !detailVisible;
 
   el("viewMatchesBtn").classList.toggle("active", matchesVisible || detailVisible);
-  el("viewTicketsBtn").classList.toggle("active", ticketsVisible);
+  el("viewHistoryBtn").classList.toggle("active", historyVisible);
 }
 
 async function openMatchDetail(fixtureId) {
@@ -938,120 +958,106 @@ async function loadAndRenderMatch() {
   renderDetailHistory(entry);
 }
 
-function renderTicketVariants(day) {
-  const tabs = el("ticketTabs");
-  const viewer = el("ticketViewer");
+function renderHistoryView() {
+  const tabs = el("historyTabs");
+  const viewer = el("historyViewer");
   tabs.innerHTML = "";
   viewer.innerHTML = "";
 
-  const matches = filteredMatches();
-  const recommendations = matches.map((match) => getMatchRecommendation(match.fixtureId)).filter(Boolean);
+  const recentDays = getRecentHistoryDays(7);
+  if (!recentDays.includes(current.historyDay)) current.historyDay = recentDays[0] || null;
 
-  el("recSub").textContent = `${fmtDayLong(day)} • ${recommendations.length} selectii disponibile pentru Focusul zilei`;
-
-  if (!recommendations.length) {
-    viewer.innerHTML = `<div class="ticket-empty">Nu exista suficiente recomandari solide pentru a grupa Focusul zilei in filtrul curent.</div>`;
-    return;
-  }
-
-  const renderedTickets = buildDisplayedTickets(matches, getHistEntry);
-  for (const config of TICKET_CONFIGS) {
-    const tabTicket = renderedTickets.get(config.key);
-    const tabPct = tabTicket ? pctRounded(tabTicket.combinedProbability) : "—";
+  for (const day of recentDays) {
     const button = document.createElement("button");
     button.className = "ticket-pill";
     button.type = "button";
     button.innerHTML = `
-      <span class="ticket-pill-name">${escapeHtml(config.name)}</span>
-      <span class="ticket-pill-meta">${escapeHtml(tabPct)}</span>
+      <span class="ticket-pill-name">${escapeHtml(fmtDayLong(day))}</span>
+      <span class="ticket-pill-meta">${escapeHtml(day.slice(5))}</span>
     `;
-    button.classList.toggle("active", current.ticketKey === config.key);
+    button.classList.toggle("active", current.historyDay === day);
     button.addEventListener("click", () => {
-      current.ticketKey = config.key;
-      renderTicketVariants(day);
+      current.historyDay = day;
+      renderHistoryView();
     });
     tabs.appendChild(button);
   }
 
-  if (!TICKET_CONFIGS.some((config) => config.key === current.ticketKey)) {
-    current.ticketKey = TICKET_CONFIGS[0].key;
-  }
+  const archiveDays = Array.isArray(HISTORY_ARCHIVE?.days) ? HISTORY_ARCHIVE.days : [];
+  const archiveItems = HISTORY_ARCHIVE?.itemsByDay?.[current.historyDay] || [];
+  const hasArchive = archiveDays.includes(current.historyDay) && Array.isArray(archiveItems) && archiveItems.length;
 
-  const config = TICKET_CONFIGS.find((item) => item.key === current.ticketKey) || TICKET_CONFIGS[0];
-  const ticket = renderedTickets.get(config.key);
-  const article = document.createElement("article");
-  article.className = "ticket-card";
-  article.dataset.tone = config.key;
+  el("historySub").textContent = `${fmtDayLong(current.historyDay)} • ultimele 7 zile`;
 
-  if (!ticket) {
-    article.innerHTML = `
-      <div class="ticket-card-head">
-        <div class="ticket-card-copy">
-          <div class="ticket-kicker">Focusul zilei</div>
-          <div class="ticket-name">${escapeHtml(config.name)}</div>
-          <div class="ticket-badge">${escapeHtml(config.badge || "")}</div>
-          <div class="ticket-desc">${escapeHtml(config.desc)}</div>
+  if (!hasArchive) {
+    viewer.innerHTML = `
+      <article class="ticket-card" data-tone="value">
+        <div class="ticket-card-head">
+          <div class="ticket-card-copy">
+            <div class="ticket-kicker">Istoric</div>
+            <div class="ticket-name">${escapeHtml(fmtDayLong(current.historyDay))}</div>
+            <div class="ticket-badge">Arhiva nu este disponibila inca</div>
+            <div class="ticket-desc">Acest tab este pregatit pentru snapshot-uri zilnice de recomandari si rezultate finale.</div>
+          </div>
+          <div class="ticket-target">
+            <span class="ticket-target-label">Status</span>
+            <span class="ticket-target-value">—</span>
+            <span class="ticket-target-meta">Fara snapshot salvat</span>
+          </div>
         </div>
-        <div class="ticket-target">
-          <span class="ticket-target-label">Cota grupata</span>
-          <span class="ticket-target-value">${fmtOdds(config.target)}</span>
+
+        <div class="ticket-stats">
+          <article class="ticket-stat total-stat">
+            <div class="stat-label">Ce lipseste</div>
+            <div class="stat-value">Arhiva</div>
+            <div class="stat-copy">Pentru acest tab trebuie sa salvam zilnic recomandarile si apoi sa le evaluam pe rezultate finale.</div>
+          </article>
+          <article class="ticket-stat">
+            <div class="stat-label">Fereastra</div>
+            <div class="stat-value">7 zile</div>
+            <div class="stat-copy">Selectorul este deja pregatit pentru o fereastra scurta si usor de verificat.</div>
+          </article>
+          <article class="ticket-stat">
+            <div class="stat-label">Pas urmator</div>
+            <div class="stat-value">Snapshot</div>
+            <div class="stat-copy">La etapa urmatoare salvam recomandarile zilei si rezultatele lor reale.</div>
+          </article>
         </div>
-      </div>
-      <div class="ticket-empty">Nu am gasit o combinatie suficient de solida pentru acest profil in filtrul curent.</div>
+
+        <div class="ticket-cta-note">Nu afisam rezultate false. Aici vor aparea corect sau gresit doar dupa ce exista arhiva reala de recomandari si scoruri finale.</div>
+      </article>
     `;
-    viewer.appendChild(article);
     return;
   }
 
-  const risk = getRiskProfile(ticket.avgP);
-  const combinedPct = pctRounded(ticket.combinedProbability);
-  const picksMarkup = ticket.picks.map((pick) => `
+  const picksMarkup = archiveItems.map((pick) => `
     <div class="ticket-pick">
       <div class="ticket-pick-main">
-        <div class="ticket-pick-match">${escapeHtml(pick.home)} vs ${escapeHtml(pick.away)}</div>
-        <div class="ticket-pick-bet">${escapeHtml(pick.displayLabel)} • ${escapeHtml(pctRounded(pick.p))} estimat</div>
+        <div class="ticket-pick-match">${escapeHtml(pick.match || `${pick.home} vs ${pick.away}`)}</div>
+        <div class="ticket-pick-bet">${escapeHtml(pick.pick || pick.displayLabel || "Recomandare")} • ${escapeHtml(pick.resultLabel || "In asteptare")}</div>
       </div>
-      <div class="ticket-pick-odds">${fmtOdds(pick.bookOdds)}</div>
+      <div class="ticket-pick-odds">${escapeHtml(pick.resultShort || "—")}</div>
     </div>
   `).join("");
 
-  article.innerHTML = `
-    <div class="ticket-card-head">
-      <div class="ticket-card-copy">
-        <div class="ticket-kicker">Focusul zilei</div>
-        <div class="ticket-name">${escapeHtml(config.name)}</div>
-        <div class="ticket-badge">${escapeHtml(config.badge || "")}</div>
-        <div class="ticket-desc">${escapeHtml(config.desc)}</div>
+  viewer.innerHTML = `
+    <article class="ticket-card" data-tone="value">
+      <div class="ticket-card-head">
+        <div class="ticket-card-copy">
+          <div class="ticket-kicker">Istoric</div>
+          <div class="ticket-name">${escapeHtml(fmtDayLong(current.historyDay))}</div>
+          <div class="ticket-badge">Arhiva salvata</div>
+          <div class="ticket-desc">Recomandarile zilei si verdictul lor final.</div>
+        </div>
+        <div class="ticket-target">
+          <span class="ticket-target-label">Total recomandari</span>
+          <span class="ticket-target-value">${escapeHtml(String(archiveItems.length))}</span>
+        </div>
       </div>
-      <div class="ticket-target">
-        <span class="ticket-target-label">Cota grupata</span>
-        <span class="ticket-target-value">${fmtOdds(ticket.totalOdds)}</span>
-        <span class="ticket-target-meta">${escapeHtml(`${combinedPct} reusita estimata`)}</span>
-      </div>
-    </div>
-
-    <div class="ticket-stats">
-      <article class="ticket-stat total-stat">
-        <div class="stat-label">Tinta</div>
-        <div class="stat-value">${fmtOdds(config.target)}</div>
-        <div class="stat-copy">Apropiere ${pctRounded(Math.max(0, 1 - ticket.closeness))}</div>
-      </article>
-      <article class="ticket-stat">
-        <div class="stat-label">Prob. medie</div>
-        <div class="stat-value">${pctRounded(ticket.avgP)}</div>
-        <div class="stat-copy">${escapeHtml(risk.label)} • selectii curate pentru acest profil</div>
-      </article>
-      <article class="ticket-stat">
-        <div class="stat-label">Reusita estimata</div>
-        <div class="stat-value">${combinedPct}</div>
-        <div class="stat-copy">${escapeHtml(risk.note)}</div>
-      </article>
-    </div>
-
-    <div class="ticket-picks">${picksMarkup}</div>
-    <div class="ticket-cta-note">Focusul zilei este afisat informativ, pe baza cotelor si selectiilor disponibile in sursa de date curenta.</div>
+      <div class="ticket-picks">${picksMarkup}</div>
+      <div class="ticket-cta-note">Acest tab afiseaza doar arhiva reala. Daca o zi nu are snapshot, nu afisam rezultate estimate sau inventate.</div>
+    </article>
   `;
-  viewer.appendChild(article);
 }
 
 async function refreshDataAndRender() {
@@ -1062,7 +1068,7 @@ async function refreshDataAndRender() {
   renderDaySel();
   renderLeagueSel();
   renderMatchesList();
-  renderTicketVariants(current.day);
+  renderHistoryView();
   setView("matches");
 }
 
@@ -1072,7 +1078,7 @@ async function init() {
     renderDaySel();
     renderLeagueSel();
     renderMatchesList();
-    renderTicketVariants(current.day);
+    renderHistoryView();
     setView("matches");
 
     document.querySelector(".brand-lockup")?.addEventListener("click", (event) => {
@@ -1081,7 +1087,7 @@ async function init() {
     });
 
     el("viewMatchesBtn").addEventListener("click", () => goBackToMatches());
-    el("viewTicketsBtn").addEventListener("click", () => setView("tickets"));
+    el("viewHistoryBtn").addEventListener("click", () => setView("history"));
     el("backToMatchesBtn").addEventListener("click", () => goBackToMatches());
 
     el("dayTrigger").addEventListener("click", (event) => {
@@ -1115,7 +1121,7 @@ async function init() {
       current.fixtureId = null;
       renderLeagueSel();
       renderMatchesList();
-      renderTicketVariants(current.day);
+      renderHistoryView();
       goBackToMatches();
     });
 
