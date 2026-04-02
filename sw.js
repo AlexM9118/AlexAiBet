@@ -1,5 +1,5 @@
-const STATIC_CACHE = "zbet-static-v8";
-const DATA_CACHE = "zbet-data-v8";
+const STATIC_CACHE = "zbet-static-v9";
+const DATA_CACHE = "zbet-data-v9";
 
 const STATIC_ASSETS = [
   "./",
@@ -39,6 +39,10 @@ function isDataRequest(requestUrl) {
   return requestUrl.pathname.includes("/data/") || requestUrl.pathname.endsWith(".json");
 }
 
+function isHistoryArchiveRequest(requestUrl) {
+  return requestUrl.pathname.endsWith("/data/ui/history_archive_index.json");
+}
+
 self.addEventListener("fetch", (event) => {
   const request = event.request;
   if (request.method !== "GET") return;
@@ -60,6 +64,11 @@ self.addEventListener("fetch", (event) => {
           return caches.match("./index.html");
         })
     );
+    return;
+  }
+
+  if (isHistoryArchiveRequest(url)) {
+    event.respondWith(fetch(request, { cache: "no-store" }));
     return;
   }
 

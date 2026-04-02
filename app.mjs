@@ -28,6 +28,7 @@ let HISTORY_ARCHIVE = { days: [], itemsByDay: {} };
 let current = { day: null, calendarMonth: null, leagueId: "all", fixtureId: null, historyDay: null, view: "matches", leagueQuery: "" };
 const EMPTY_LEAGUE_WINDOW_DAYS = 7;
 const expandedAltFixtures = new Set();
+const DATA_VERSION = "20260402c";
 
 const TEAM_DISPLAY_ALIASES = {
   "ACS Champions FC Arges": "FC Arges",
@@ -342,13 +343,13 @@ async function getOptionalJson(path, fallback) {
 
 async function loadAll() {
   setStatus("Loading...");
-  UI.index = await getJson("./data/ui/index.json");
-  const matchesObj = await getJson("./data/ui/matches.json");
-  const leaguesObj = await getJson("./data/ui/leagues.json");
-  const tournamentCatalog = await getJson("./data/oddspapi_tournaments.json");
-  const tournamentConfig = await getJson("./scripts/oddspapi-tournament-ids.json");
-  HIST = await getJson("./data/ui/history_stats.json");
-  HISTORY_ARCHIVE = await getOptionalJson("./data/ui/history_archive_index.json", { days: [], itemsByDay: {} });
+  UI.index = await getJson(`./data/ui/index.json?v=${DATA_VERSION}`);
+  const matchesObj = await getJson(`./data/ui/matches.json?v=${DATA_VERSION}`);
+  const leaguesObj = await getJson(`./data/ui/leagues.json?v=${DATA_VERSION}`);
+  const tournamentCatalog = await getJson(`./data/oddspapi_tournaments.json?v=${DATA_VERSION}`);
+  const tournamentConfig = await getJson(`./scripts/oddspapi-tournament-ids.json?v=${DATA_VERSION}`);
+  HIST = await getJson(`./data/ui/history_stats.json?v=${DATA_VERSION}`);
+  HISTORY_ARCHIVE = await getOptionalJson(`./data/ui/history_archive_index.json?v=${DATA_VERSION}`, { days: [], itemsByDay: {} });
 
   UI.matches = (matchesObj.matches || [])
     .map((match) => ({
