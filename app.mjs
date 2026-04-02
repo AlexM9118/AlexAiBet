@@ -215,6 +215,30 @@ function getRecommendationGapMessage(match) {
   return "Momentan lipsesc suficiente date pentru o recomandare de incredere.";
 }
 
+function historyHeadline(summary) {
+  if (!summary) return { title: "Arhiva zilei", subtitle: "Fara sumar disponibil" };
+  if (summary.wins > 0 && summary.losses === 0 && (summary.unavailable + summary.pending + summary.ungraded) === 0) {
+    return { title: "Zi foarte buna", subtitle: "Toate recomandarile evaluate au iesit corect." };
+  }
+  if (summary.wins > summary.losses && summary.wins > 0) {
+    return { title: "Zi favorabila", subtitle: "Mai multe recomandari corecte decat gresite." };
+  }
+  if (summary.losses > summary.wins && summary.losses > 0) {
+    return { title: "Zi dificila", subtitle: "Rezultatele validate au fost sub asteptari." };
+  }
+  if ((summary.unavailable || 0) > 0 && summary.wins === 0 && summary.losses === 0) {
+    return { title: "Zi incompleta", subtitle: "Arhiva exista, dar lipsesc rezultate finale pentru validare." };
+  }
+  return { title: "Arhiva zilei", subtitle: "Rezultatele sunt afisate pe masura ce apar datele finale." };
+}
+
+function historyValidationRate(summary) {
+  if (!summary) return null;
+  const graded = Number(summary.wins || 0) + Number(summary.losses || 0);
+  if (!graded) return null;
+  return Math.round((Number(summary.wins || 0) / graded) * 100);
+}
+
 function marketFamilyLabel(recommendation) {
   if (!recommendation) return "N/A";
   if (recommendation.market === "1X2") return "1X2";
@@ -1045,12 +1069,27 @@ function renderHistoryView() {
     </div>
   `).join("");
 
+  const headline = historyHeadline(summary);
+  const validationRate = historyValidationRate(summary);
+
   viewer.innerHTML = `
     <article class="ticket-card" data-tone="value">
-        <div class="ticket-card-head">
-        <div class="ticket-card-copy">
+      <div class="history-premium-head">
+        <div class="history-premium-copy">
           <div class="ticket-kicker">Istoric</div>
           <div class="ticket-name">${escapeHtml(fmtDayLong(current.historyDay))}</div>
+          <div class="history-premium-title">${escapeHtml(headline.title)}</div>
+          <div class="history-premium-subtitle">${escapeHtml(headline.subtitle)}</div>
+        </div>
+        <div class="history-premium-score">
+          <span class="ticket-target-label">Rata validata</span>
+          <span class="history-premium-score-value">${validationRate == null ? "—" : escapeHtml(`${validationRate}%`)}</span>
+          <span class="ticket-target-meta">${escapeHtml(`${archiveItems.length} recomandari arhivate`)}</span>
+        </div>
+      </div>
+
+      <div class="ticket-card-head">
+        <div class="ticket-card-copy">
           <div class="ticket-badge">Arhiva salvata</div>
           <div class="ticket-desc">Recomandarile reale ale zilei, cu verdict unde exista rezultat final in feed.</div>
         </div>

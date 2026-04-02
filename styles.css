@@ -1523,9 +1523,59 @@ select option:checked{
   font-weight:800;
 }
 
+.history-premium-head{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:14px;
+  align-items:center;
+  padding:14px 16px;
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,0.06);
+  background:
+    radial-gradient(circle at top left, rgba(190,36,43,0.18), transparent 42%),
+    linear-gradient(180deg, rgba(18,22,31,0.98), rgba(11,14,21,0.96));
+}
+
+.history-premium-copy{
+  min-width:0;
+}
+
+.history-premium-title{
+  margin-top:6px;
+  font-size:20px;
+  font-weight:900;
+  letter-spacing:-0.02em;
+  color:#f8fbff;
+}
+
+.history-premium-subtitle{
+  margin-top:4px;
+  font-size:12px;
+  line-height:1.55;
+  color:#aeb8c9;
+}
+
+.history-premium-score{
+  min-width:116px;
+  padding:12px 14px;
+  border-radius:16px;
+  text-align:right;
+  border:1px solid rgba(92,168,255,0.14);
+  background:linear-gradient(180deg, rgba(14,29,52,0.92), rgba(11,18,31,0.9));
+}
+
+.history-premium-score-value{
+  display:block;
+  margin-top:4px;
+  font-size:28px;
+  font-weight:900;
+  letter-spacing:-0.03em;
+  color:#ecf6ff;
+}
+
 .ticket-stats{
   display:grid;
-  grid-template-columns:repeat(3, minmax(0,1fr));
+  grid-template-columns:repeat(4, minmax(0,1fr));
   gap:8px;
 }
 
@@ -1589,7 +1639,8 @@ select option:checked{
 }
 
 .ticket-pick[data-outcome="pending"],
-.ticket-pick[data-outcome="ungraded"]{
+.ticket-pick[data-outcome="ungraded"],
+.ticket-pick[data-outcome="unavailable"]{
   border-color:rgba(126,110,170,0.2);
   background:linear-gradient(180deg, rgba(39,31,63,0.34), rgba(16,14,22,0.42));
 }
@@ -1709,6 +1760,19 @@ select option:checked{
 
   .match-row{
     grid-template-columns:1fr;
+  }
+
+  .history-premium-head{
+    grid-template-columns:1fr;
+  }
+
+  .history-premium-score{
+    text-align:left;
+    min-width:0;
+  }
+
+  .ticket-stats{
+    grid-template-columns:repeat(2, minmax(0,1fr));
   }
 
   .match-main{
