@@ -199,7 +199,7 @@ function evaluatePick(pick, finished, kickOff) {
     const kickoffTime = new Date(kickOff || "");
     const startedLongAgo = Number.isFinite(kickoffTime.getTime()) && kickoffTime.getTime() < (Date.now() - (4 * 60 * 60 * 1000));
     return {
-      outcome: "pending",
+      outcome: startedLongAgo ? "unavailable" : "pending",
       resultLabel: startedLongAgo ? "Scor final indisponibil" : "In asteptare",
       resultShort: "—",
       facts: null
@@ -280,6 +280,7 @@ function summarise(items) {
     wins: 0,
     losses: 0,
     pending: 0,
+    unavailable: 0,
     ungraded: 0,
     missing: 0
   };
@@ -287,12 +288,21 @@ function summarise(items) {
   for (const item of items) {
     if (item.outcome === "win") summary.wins += 1;
     else if (item.outcome === "loss") summary.losses += 1;
+    else if (item.outcome === "unavailable") summary.unavailable += 1;
     else if (item.outcome === "missing") summary.missing += 1;
     else if (item.outcome === "ungraded") summary.ungraded += 1;
     else summary.pending += 1;
   }
 
   return summary;
+}
+
+function normalizeArchivedItem(item) {
+  if (!item) return item;
+  if (item.outcome === "pending" && item.resultLabel === "Scor final indisponibil") {
+    return { ...item, outcome: "unavailable" };
+  }
+  return item;
 }
 
 async function main() {
@@ -343,7 +353,7 @@ async function main() {
         };
       });
 
-    const previousItems = Array.isArray(existingArchive?.itemsByDay?.[day]) ? existingArchive.itemsByDay[day] : [];
+    const previousItems = (Array.isArray(existingArchive?.itemsByDay?.[day]) ? existingArchive.itemsByDay[day] : []).map(normalizeArchivedItem);
     const shouldKeepPrevious = day < today && !items.length && previousItems.length;
     itemsByDay[day] = shouldKeepPrevious ? previousItems : items;
     summaryByDay[day] = shouldKeepPrevious

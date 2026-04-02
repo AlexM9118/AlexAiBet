@@ -1056,7 +1056,7 @@ function renderHistoryView() {
         <div class="ticket-target">
           <span class="ticket-target-label">Total recomandari</span>
           <span class="ticket-target-value">${escapeHtml(String(archiveItems.length))}</span>
-          ${summary ? `<span class="ticket-target-meta">${escapeHtml(`${summary.wins} corecte • ${summary.losses} gresite • ${summary.pending + summary.ungraded} in asteptare`)}</span>` : ""}
+          ${summary ? `<span class="ticket-target-meta">${escapeHtml(`${summary.wins} corecte • ${summary.losses} gresite • ${summary.unavailable || 0} indisponibile • ${summary.pending + summary.ungraded} in asteptare`)}</span>` : ""}
         </div>
       </div>
       ${summary ? `
@@ -1076,10 +1076,15 @@ function renderHistoryView() {
             <div class="stat-value">${escapeHtml(String(summary.pending + summary.ungraded))}</div>
             <div class="stat-copy">Meciuri fara scor final disponibil sau piete care nu pot fi evaluate inca.</div>
           </article>
+          <article class="ticket-stat">
+            <div class="stat-label">Indisponibile</div>
+            <div class="stat-value">${escapeHtml(String(summary.unavailable || 0))}</div>
+            <div class="stat-copy">Meciuri terminate pentru care feed-ul sau sursa locala nu livreaza inca rezultatul final complet.</div>
+          </article>
         </div>
       ` : ""}
       <div class="ticket-picks">${picksMarkup}</div>
-      <div class="ticket-cta-note">Acest tab afiseaza doar arhiva reala. Daca lipseste scorul final din feed, recomandarea ramane in asteptare in loc sa primeasca un verdict fals.</div>
+      <div class="ticket-cta-note">Acest tab afiseaza doar arhiva reala. Daca lipseste scorul final din feed, recomandarea este marcata ca indisponibila, nu ca verdict fals.</div>
     </article>
   `;
 }
