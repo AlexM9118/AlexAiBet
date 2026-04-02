@@ -1038,7 +1038,7 @@ function renderHistoryView() {
       <div class="ticket-pick-main">
         <div class="ticket-pick-match">${escapeHtml(pick.match || `${pick.home} vs ${pick.away}`)}</div>
         <div class="ticket-pick-bet">${escapeHtml(pick.pick || pick.displayLabel || "Recomandare")} • ${escapeHtml(pick.resultLabel || "In asteptare")}</div>
-        <div class="ticket-pick-meta">${escapeHtml(pick.league || "")}${pick.odds ? ` • cota ${escapeHtml(fmtOdds(pick.odds))}` : ""}${pick.confidenceLabel ? ` • incredere ${escapeHtml(pick.confidenceLabel)}` : Number.isFinite(pick.confidence) ? ` • ${escapeHtml(pct01(pick.confidence))}` : ""}</div>
+        <div class="ticket-pick-meta">${escapeHtml(pick.league || "")}${pick.odds ? ` • cota ${escapeHtml(fmtOdds(pick.odds))}` : ""}${pick.confidenceLabel ? ` • incredere ${escapeHtml(pick.confidenceLabel)}` : Number.isFinite(pick.confidence) ? ` • ${escapeHtml(pct01(pick.confidence))}` : ""}${pick.facts ? ` • ${escapeHtml(pick.facts)}` : ""}</div>
       </div>
       <div class="ticket-pick-odds">${escapeHtml(pick.resultShort || "—")}</div>
     </div>

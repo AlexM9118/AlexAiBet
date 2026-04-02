@@ -10,6 +10,7 @@ const DISPLAY_ALIASES = {
   "FC CFR 1907 Cluj": "CFR Cluj",
   "Wolverhampton Wanderers": "Wolverhampton"
 };
+const historyFileCache = new Map();
 
 function readJson(filePath, fallback = null) {
   try {
@@ -36,6 +37,18 @@ function displayTeam(name) {
   return DISPLAY_ALIASES[raw] || raw;
 }
 
+function normalizeName(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[’'.]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\b(fc|cf|sc|afc|ac|fk|sk|club|deportivo|atletico|ca)\b/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function buildRecentDays(windowDays = WINDOW_DAYS) {
   const out = [];
   const base = new Date();
@@ -51,6 +64,41 @@ function buildRecentDays(windowDays = WINDOW_DAYS) {
 function buildHistoryLookup(historyStats) {
   const byFixtureId = historyStats?.byFixtureId || {};
   return (fixtureId) => byFixtureId[String(fixtureId)] || null;
+}
+
+function loadHistoryMatches(leagueId) {
+  if (!leagueId) return [];
+  if (!historyFileCache.has(leagueId)) {
+    const payload = readJson(path.join("data", "history", `${leagueId}.json`), { matches: [] });
+    historyFileCache.set(leagueId, Array.isArray(payload?.matches) ? payload.matches : []);
+  }
+  return historyFileCache.get(leagueId);
+}
+
+function findHistoryResult(match, histEntry) {
+  const leagueId = histEntry?.footballDataId;
+  if (!leagueId) return null;
+  const candidates = loadHistoryMatches(leagueId).filter((row) => String(row.date) === String(match.day));
+  if (!candidates.length) return null;
+
+  const homeCandidates = [
+    histEntry?.homePicked,
+    histEntry?.home,
+    histEntry?.homeRaw,
+    match.home
+  ].filter(Boolean).map(normalizeName);
+  const awayCandidates = [
+    histEntry?.awayPicked,
+    histEntry?.away,
+    histEntry?.awayRaw,
+    match.away
+  ].filter(Boolean).map(normalizeName);
+
+  return candidates.find((row) => {
+    const homeName = normalizeName(row.home);
+    const awayName = normalizeName(row.away);
+    return homeCandidates.includes(homeName) && awayCandidates.includes(awayName);
+  }) || null;
 }
 
 function toUiMatch(match) {
@@ -100,7 +148,11 @@ function normalizeFinishedFixture(entry) {
     fixtureId: String(entry.fixtureId),
     statusId: finiteNumber(entry.statusId),
     homeScore,
-    awayScore
+    awayScore,
+    hc: finiteNumber(entry.hc),
+    ac: finiteNumber(entry.ac),
+    hy: finiteNumber(entry.hy),
+    ay: finiteNumber(entry.ay)
   };
 }
 
@@ -124,12 +176,22 @@ function buildFinishedLookup() {
   return lookup;
 }
 
+function describeMatchFacts(result) {
+  if (!result) return null;
+  const parts = [];
+  if (result.homeScore != null && result.awayScore != null) parts.push(`scor ${result.homeScore}-${result.awayScore}`);
+  if (result.hc != null && result.ac != null) parts.push(`cornere ${result.hc + result.ac}`);
+  if (result.hy != null && result.ay != null) parts.push(`cartonase ${result.hy + result.ay}`);
+  return parts.join(" • ") || null;
+}
+
 function evaluatePick(pick, finished, kickOff) {
   if (!pick) {
     return {
       outcome: "missing",
       resultLabel: "Fara recomandare",
-      resultShort: "—"
+      resultShort: "—",
+      facts: null
     };
   }
 
@@ -137,9 +199,10 @@ function evaluatePick(pick, finished, kickOff) {
     const kickoffTime = new Date(kickOff || "");
     const startedLongAgo = Number.isFinite(kickoffTime.getTime()) && kickoffTime.getTime() < (Date.now() - (4 * 60 * 60 * 1000));
     return {
-      outcome: startedLongAgo ? "pending" : "pending",
+      outcome: "pending",
       resultLabel: startedLongAgo ? "Scor final indisponibil" : "In asteptare",
-      resultShort: "—"
+      resultShort: "—",
+      facts: null
     };
   }
 
@@ -148,13 +211,14 @@ function evaluatePick(pick, finished, kickOff) {
     const awayScore = finished.awayScore;
     const totalGoals = homeScore + awayScore;
     const scoreline = `${homeScore}-${awayScore}`;
+    const facts = describeMatchFacts(finished);
 
     if (pick.market === "1X2") {
       const won =
         (pick.sel === "HOME" && homeScore > awayScore) ||
         (pick.sel === "DRAW" && homeScore === awayScore) ||
         (pick.sel === "AWAY" && homeScore < awayScore);
-      return { outcome: won ? "win" : "loss", resultLabel: won ? "Corect" : "Gresit", resultShort: scoreline };
+      return { outcome: won ? "win" : "loss", resultLabel: won ? "Corect" : "Gresit", resultShort: scoreline, facts };
     }
 
     if (pick.market === "Double Chance") {
@@ -162,33 +226,51 @@ function evaluatePick(pick, finished, kickOff) {
         (pick.sel === "1X" && homeScore >= awayScore) ||
         (pick.sel === "12" && homeScore !== awayScore) ||
         (pick.sel === "X2" && homeScore <= awayScore);
-      return { outcome: won ? "win" : "loss", resultLabel: won ? "Corect" : "Gresit", resultShort: scoreline };
+      return { outcome: won ? "win" : "loss", resultLabel: won ? "Corect" : "Gresit", resultShort: scoreline, facts };
     }
 
     if (pick.market === "BTTS") {
       const yes = homeScore > 0 && awayScore > 0;
       const won = (pick.sel === "YES" && yes) || (pick.sel === "NO" && !yes);
-      return { outcome: won ? "win" : "loss", resultLabel: won ? "Corect" : "Gresit", resultShort: scoreline };
+      return { outcome: won ? "win" : "loss", resultLabel: won ? "Corect" : "Gresit", resultShort: scoreline, facts };
     }
 
     const goalsMatch = String(pick.market).match(/^Goals (\d+(?:\.\d+)?)$/);
     if (goalsMatch) {
       const line = Number(goalsMatch[1]);
       const won = pick.sel === "OVER" ? totalGoals > line : totalGoals < line;
-      return { outcome: won ? "win" : "loss", resultLabel: won ? "Corect" : "Gresit", resultShort: scoreline };
+      return { outcome: won ? "win" : "loss", resultLabel: won ? "Corect" : "Gresit", resultShort: scoreline, facts };
+    }
+
+    const cornersMatch = String(pick.market).match(/^Corners (\d+(?:\.\d+)?)$/);
+    if (cornersMatch && finished.hc != null && finished.ac != null) {
+      const line = Number(cornersMatch[1]);
+      const totalCorners = finished.hc + finished.ac;
+      const won = pick.sel === "OVER" ? totalCorners > line : totalCorners < line;
+      return { outcome: won ? "win" : "loss", resultLabel: won ? "Corect" : "Gresit", resultShort: scoreline, facts };
+    }
+
+    const cardsMatch = String(pick.market).match(/^Cards (\d+(?:\.\d+)?)$/);
+    if (cardsMatch && finished.hy != null && finished.ay != null) {
+      const line = Number(cardsMatch[1]);
+      const totalCards = finished.hy + finished.ay;
+      const won = pick.sel === "OVER" ? totalCards > line : totalCards < line;
+      return { outcome: won ? "win" : "loss", resultLabel: won ? "Corect" : "Gresit", resultShort: scoreline, facts };
     }
 
     return {
       outcome: "ungraded",
       resultLabel: "Piata neevaluata",
-      resultShort: scoreline
+      resultShort: scoreline,
+      facts
     };
   }
 
   return {
     outcome: "pending",
     resultLabel: "In asteptare",
-    resultShort: "—"
+    resultShort: "—",
+    facts: null
   };
 }
 
@@ -236,7 +318,9 @@ async function main() {
       .map((match) => {
         const pair = buildMatchRecommendationPair(match, getHistEntry) || { primary: null };
         const primary = pair.primary || null;
-        const finished = finishedLookup.get(String(match.fixtureId)) || null;
+        const histEntry = getHistEntry(match.fixtureId);
+        const localResult = findHistoryResult(match, histEntry);
+        const finished = localResult ? { statusId: 2, ...localResult } : (finishedLookup.get(String(match.fixtureId)) || null);
         const verdict = evaluatePick(primary, finished, match.startTime);
 
         return {
@@ -253,7 +337,8 @@ async function main() {
           source: primary?.source || null,
           outcome: verdict.outcome,
           resultLabel: verdict.resultLabel,
-          resultShort: verdict.resultShort
+          resultShort: verdict.resultShort,
+          facts: verdict.facts || null
         };
       });
 
