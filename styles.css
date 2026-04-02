@@ -1637,11 +1637,17 @@ select option:checked{
     position:static;
     top:auto;
     z-index:auto;
-    gap:14px;
-    padding:14px 14px calc(12px + env(safe-area-inset-top, 0px));
-    border-bottom-color:rgba(255,255,255,0.04);
-    background:rgba(8,11,15,0.98);
+    gap:12px;
+    padding:12px 12px calc(10px + env(safe-area-inset-top, 0px));
+    border:1px solid rgba(84,96,120,0.18);
+    border-bottom-color:rgba(84,96,120,0.18);
+    background:
+      linear-gradient(180deg, rgba(10,13,18,0.98), rgba(8,11,15,0.98)),
+      linear-gradient(135deg, rgba(190,36,43,0.08), rgba(255,255,255,0));
     backdrop-filter:none;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.02),
+      0 18px 36px rgba(0,0,0,0.22);
   }
   .dashboard{ padding:12px 10px calc(18px + env(safe-area-inset-bottom, 0px)); }
   .panel-hero,
@@ -1654,40 +1660,70 @@ select option:checked{
   .hero-title{ font-size:20px; }
   .detail-title{ font-size:20px; }
   .brand-lockup{
-    gap:12px;
+    gap:10px;
+    align-items:center;
   }
   .brand-mark{
-    width:56px;
-    height:56px;
-    flex-basis:56px;
-    border-radius:18px;
+    width:50px;
+    height:50px;
+    flex-basis:50px;
+    border-radius:16px;
   }
   .brand-word{
-    font-size:30px;
+    font-size:28px;
+    line-height:0.92;
   }
   .brand-tagline{
-    margin-top:6px;
+    margin-top:4px;
     font-size:8px;
-    letter-spacing:4px;
+    letter-spacing:3.5px;
   }
   .main-nav{
     width:100%;
     gap:6px;
-    padding:7px;
-    border-radius:22px;
-    background:rgba(18,24,32,0.94);
+    padding:6px;
+    border-radius:24px;
+    background:
+      linear-gradient(180deg, rgba(22,27,35,0.98), rgba(16,20,28,0.98)),
+      linear-gradient(135deg, rgba(190,36,43,0.08), rgba(255,255,255,0));
+    border:1px solid rgba(84,96,120,0.14);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.02);
   }
   .navlink{
     flex:1 1 0;
     min-width:0;
-    padding:12px 12px;
+    padding:11px 12px;
     border-radius:18px;
     font-size:15px;
+    font-weight:900;
+  }
+  .navlink.active{
+    background:linear-gradient(135deg, rgba(190,36,43,0.7), rgba(102,32,42,0.92));
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,0.08),
+      0 10px 24px rgba(134,26,33,0.2);
   }
   .iconbtn{
     width:40px;
     height:40px;
     font-size:16px;
+  }
+  .content-panel{
+    overflow:hidden;
+  }
+  .panel-hero{
+    padding-top:12px;
+    padding-bottom:10px;
+  }
+  .hero-kicker{
+    font-size:11px;
+    letter-spacing:1.4px;
+  }
+  .hero-subtitle{
+    font-size:12px;
+  }
+  .hero-variety{
+    font-size:11px;
   }
   .day-control{
     grid-template-columns:minmax(0,1fr) 38px;
