@@ -1578,6 +1578,27 @@ select option:checked{
   background:rgba(255,255,255,0.02);
 }
 
+.ticket-pick[data-outcome="win"]{
+  border-color:rgba(30,210,117,0.22);
+  background:linear-gradient(180deg, rgba(10,53,29,0.34), rgba(9,18,13,0.42));
+}
+
+.ticket-pick[data-outcome="loss"]{
+  border-color:rgba(190,36,43,0.2);
+  background:linear-gradient(180deg, rgba(73,17,22,0.34), rgba(27,10,12,0.42));
+}
+
+.ticket-pick[data-outcome="pending"],
+.ticket-pick[data-outcome="ungraded"]{
+  border-color:rgba(126,110,170,0.2);
+  background:linear-gradient(180deg, rgba(39,31,63,0.34), rgba(16,14,22,0.42));
+}
+
+.ticket-pick[data-outcome="missing"]{
+  border-style:dashed;
+  border-color:rgba(255,255,255,0.12);
+}
+
 .ticket-pick-match{
   font-size:13px;
   font-weight:800;
@@ -1587,6 +1608,13 @@ select option:checked{
   margin-top:3px;
   color:var(--muted);
   font-size:11px;
+}
+
+.ticket-pick-meta{
+  margin-top:4px;
+  color:#9facba;
+  font-size:10px;
+  line-height:1.4;
 }
 
 .ticket-pick-odds{

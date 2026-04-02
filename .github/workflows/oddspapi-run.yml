@@ -116,6 +116,10 @@ jobs:
         if: ${{ inputs.job == 'odds' || inputs.job == 'build_ui' }}
         run: node scripts/build-ui-history-stats.js
 
+      - name: Build history archive (recent recommendations)
+        if: ${{ inputs.job == 'odds' || inputs.job == 'build_ui' }}
+        run: node scripts/build-history-archive.js
+
       # ----------------------------
       # Report job (no API calls)
       # ----------------------------

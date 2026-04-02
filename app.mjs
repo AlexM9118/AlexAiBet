@@ -965,7 +965,9 @@ function renderHistoryView() {
   viewer.innerHTML = "";
 
   const recentDays = getRecentHistoryDays(7);
-  if (!recentDays.includes(current.historyDay)) current.historyDay = recentDays[0] || null;
+  const archiveDays = Array.isArray(HISTORY_ARCHIVE?.days) ? HISTORY_ARCHIVE.days : [];
+  const preferredDay = archiveDays.find((day) => recentDays.includes(day)) || recentDays[0] || null;
+  if (!recentDays.includes(current.historyDay)) current.historyDay = preferredDay;
 
   for (const day of recentDays) {
     const button = document.createElement("button");
@@ -983,34 +985,35 @@ function renderHistoryView() {
     tabs.appendChild(button);
   }
 
-  const archiveDays = Array.isArray(HISTORY_ARCHIVE?.days) ? HISTORY_ARCHIVE.days : [];
-  const archiveItems = HISTORY_ARCHIVE?.itemsByDay?.[current.historyDay] || [];
-  const hasArchive = archiveDays.includes(current.historyDay) && Array.isArray(archiveItems) && archiveItems.length;
+  const archivePayload = HISTORY_ARCHIVE?.itemsByDay?.[current.historyDay] || [];
+  const archiveItems = Array.isArray(archivePayload) ? archivePayload : archivePayload?.items || [];
+  const summary = HISTORY_ARCHIVE?.summaryByDay?.[current.historyDay] || null;
+  const hasArchive = archiveDays.includes(current.historyDay) && Array.isArray(archiveItems);
 
   el("historySub").textContent = `${fmtDayLong(current.historyDay)} • ultimele 7 zile`;
 
-  if (!hasArchive) {
+  if (!hasArchive || !archiveItems.length) {
     viewer.innerHTML = `
       <article class="ticket-card" data-tone="value">
         <div class="ticket-card-head">
           <div class="ticket-card-copy">
             <div class="ticket-kicker">Istoric</div>
             <div class="ticket-name">${escapeHtml(fmtDayLong(current.historyDay))}</div>
-            <div class="ticket-badge">Arhiva nu este disponibila inca</div>
-            <div class="ticket-desc">Acest tab este pregatit pentru snapshot-uri zilnice de recomandari si rezultate finale.</div>
+            <div class="ticket-badge">Nu exista meciuri arhivate</div>
+            <div class="ticket-desc">Pentru aceasta zi nu avem inca recomandari salvate in fereastra istorica disponibila.</div>
           </div>
           <div class="ticket-target">
             <span class="ticket-target-label">Status</span>
             <span class="ticket-target-value">—</span>
-            <span class="ticket-target-meta">Fara snapshot salvat</span>
+            <span class="ticket-target-meta">Fara recomandari in arhiva</span>
           </div>
         </div>
 
         <div class="ticket-stats">
           <article class="ticket-stat total-stat">
-            <div class="stat-label">Ce lipseste</div>
-            <div class="stat-value">Arhiva</div>
-            <div class="stat-copy">Pentru acest tab trebuie sa salvam zilnic recomandarile si apoi sa le evaluam pe rezultate finale.</div>
+            <div class="stat-label">Ce vedem aici</div>
+            <div class="stat-value">Arhiva reala</div>
+            <div class="stat-copy">Afisam doar zile pentru care exista recomandari salvate. Nu inventam rezultate si nu reconstruim artificial trecutul.</div>
           </article>
           <article class="ticket-stat">
             <div class="stat-label">Fereastra</div>
@@ -1018,23 +1021,24 @@ function renderHistoryView() {
             <div class="stat-copy">Selectorul este deja pregatit pentru o fereastra scurta si usor de verificat.</div>
           </article>
           <article class="ticket-stat">
-            <div class="stat-label">Pas urmator</div>
-            <div class="stat-value">Snapshot</div>
-            <div class="stat-copy">La etapa urmatoare salvam recomandarile zilei si rezultatele lor reale.</div>
+            <div class="stat-label">Evaluare</div>
+            <div class="stat-value">Automata</div>
+            <div class="stat-copy">Unde exista scor final in feed, recomandarea va fi marcata automat ca corecta sau gresita.</div>
           </article>
         </div>
 
-        <div class="ticket-cta-note">Nu afisam rezultate false. Aici vor aparea corect sau gresit doar dupa ce exista arhiva reala de recomandari si scoruri finale.</div>
+        <div class="ticket-cta-note">Istoricul foloseste doar arhiva reala generata din meciurile si recomandarile zilei.</div>
       </article>
     `;
     return;
   }
 
   const picksMarkup = archiveItems.map((pick) => `
-    <div class="ticket-pick">
+    <div class="ticket-pick" data-outcome="${escapeHtml(pick.outcome || "pending")}">
       <div class="ticket-pick-main">
         <div class="ticket-pick-match">${escapeHtml(pick.match || `${pick.home} vs ${pick.away}`)}</div>
         <div class="ticket-pick-bet">${escapeHtml(pick.pick || pick.displayLabel || "Recomandare")} • ${escapeHtml(pick.resultLabel || "In asteptare")}</div>
+        <div class="ticket-pick-meta">${escapeHtml(pick.league || "")}${pick.odds ? ` • cota ${escapeHtml(fmtOdds(pick.odds))}` : ""}${pick.confidenceLabel ? ` • incredere ${escapeHtml(pick.confidenceLabel)}` : Number.isFinite(pick.confidence) ? ` • ${escapeHtml(pct01(pick.confidence))}` : ""}</div>
       </div>
       <div class="ticket-pick-odds">${escapeHtml(pick.resultShort || "—")}</div>
     </div>
@@ -1042,20 +1046,40 @@ function renderHistoryView() {
 
   viewer.innerHTML = `
     <article class="ticket-card" data-tone="value">
-      <div class="ticket-card-head">
+        <div class="ticket-card-head">
         <div class="ticket-card-copy">
           <div class="ticket-kicker">Istoric</div>
           <div class="ticket-name">${escapeHtml(fmtDayLong(current.historyDay))}</div>
           <div class="ticket-badge">Arhiva salvata</div>
-          <div class="ticket-desc">Recomandarile zilei si verdictul lor final.</div>
+          <div class="ticket-desc">Recomandarile reale ale zilei, cu verdict unde exista rezultat final in feed.</div>
         </div>
         <div class="ticket-target">
           <span class="ticket-target-label">Total recomandari</span>
           <span class="ticket-target-value">${escapeHtml(String(archiveItems.length))}</span>
+          ${summary ? `<span class="ticket-target-meta">${escapeHtml(`${summary.wins} corecte • ${summary.losses} gresite • ${summary.pending + summary.ungraded} in asteptare`)}</span>` : ""}
         </div>
       </div>
+      ${summary ? `
+        <div class="ticket-stats">
+          <article class="ticket-stat total-stat">
+            <div class="stat-label">Corecte</div>
+            <div class="stat-value">${escapeHtml(String(summary.wins))}</div>
+            <div class="stat-copy">Selectii confirmate de scorul final disponibil.</div>
+          </article>
+          <article class="ticket-stat">
+            <div class="stat-label">Gresite</div>
+            <div class="stat-value">${escapeHtml(String(summary.losses))}</div>
+            <div class="stat-copy">Selectii evaluate si invalidate de scorul final.</div>
+          </article>
+          <article class="ticket-stat">
+            <div class="stat-label">In asteptare</div>
+            <div class="stat-value">${escapeHtml(String(summary.pending + summary.ungraded))}</div>
+            <div class="stat-copy">Meciuri fara scor final disponibil sau piete care nu pot fi evaluate inca.</div>
+          </article>
+        </div>
+      ` : ""}
       <div class="ticket-picks">${picksMarkup}</div>
-      <div class="ticket-cta-note">Acest tab afiseaza doar arhiva reala. Daca o zi nu are snapshot, nu afisam rezultate estimate sau inventate.</div>
+      <div class="ticket-cta-note">Acest tab afiseaza doar arhiva reala. Daca lipseste scorul final din feed, recomandarea ramane in asteptare in loc sa primeasca un verdict fals.</div>
     </article>
   `;
 }
