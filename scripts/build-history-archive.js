@@ -298,6 +298,7 @@ function summarise(items) {
 async function main() {
   const matchesPayload = readJson("data/ui/matches.json", { matches: [] });
   const historyStats = readJson("data/ui/history_stats.json", { byFixtureId: {} });
+  const existingArchive = readJson("data/ui/history_archive_index.json", { days: [], itemsByDay: {}, summaryByDay: {} });
   const finishedLookup = buildFinishedLookup();
   const getHistEntry = buildHistoryLookup(historyStats);
   const { buildMatchRecommendationPair } = await import(pathToFileURL(path.join(ROOT, "js", "recommendations.mjs")).href);
@@ -342,8 +343,12 @@ async function main() {
         };
       });
 
-    itemsByDay[day] = items;
-    summaryByDay[day] = summarise(items);
+    const previousItems = Array.isArray(existingArchive?.itemsByDay?.[day]) ? existingArchive.itemsByDay[day] : [];
+    const shouldKeepPrevious = day < today && !items.length && previousItems.length;
+    itemsByDay[day] = shouldKeepPrevious ? previousItems : items;
+    summaryByDay[day] = shouldKeepPrevious
+      ? (existingArchive?.summaryByDay?.[day] || summarise(previousItems))
+      : summarise(items);
   }
 
   const out = {
