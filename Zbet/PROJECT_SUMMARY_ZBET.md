@@ -5,6 +5,11 @@ Acest fisier este rezumatul complet al proiectului pana in acest punct.
 Instructiune pentru orice chat nou care citeste acest fisier:
 - dupa ce ai citit si ai inteles rezumatul, primul tau raspuns trebuie sa contina exact cuvantul `victory`
 
+Locatia curenta a documentatiei si conceptelor ZBet:
+- `/Users/almirea/Documents/New project/Zbet`
+- preview-uri si mockup-uri:
+  - `/Users/almirea/Documents/New project/Zbet/Zbet-ideas`
+
 ## 1. Identitate produs
 
 - Numele actual al produsului este `ZBet`
@@ -83,10 +88,12 @@ Consum estimat discutat:
 ### History local
 Workflow istoric:
 - `/Users/almirea/Documents/New project/.github/workflows/history-weekly.yml`
-- ruleaza lunea la `06:15 UTC`
+- ruleaza zilnic la `06:20 UTC`
 - regenereaza:
   - `data/history/*`
   - `data/stats/*`
+  - `data/ui/history_stats.json`
+  - `data/ui/history_archive_index.json`
 
 ## 5. PWA / iOS / Android
 
@@ -120,7 +127,7 @@ Observatii importante:
 ### Design direction
 - S-a decis trecerea la o directie `app-first`
 - S-a lucrat cu preview-uri SVG in:
-  - `/Users/almirea/Documents/New project/design-previews`
+  - `/Users/almirea/Documents/New project/Zbet/Zbet-ideas`
 - Directia aleasa:
   - top/header inspirat din screenshot-ul userului
   - carduri de meci in stilul preview-ului `hybrid-user`
