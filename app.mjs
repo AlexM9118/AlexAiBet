@@ -28,7 +28,7 @@ let HISTORY_ARCHIVE = { days: [], itemsByDay: {} };
 let current = { day: null, calendarMonth: null, leagueId: "all", fixtureId: null, historyDay: null, view: "matches", leagueQuery: "" };
 const EMPTY_LEAGUE_WINDOW_DAYS = 7;
 const expandedAltFixtures = new Set();
-const DATA_VERSION = "20260402c";
+const DATA_VERSION = "20260403a";
 
 const TEAM_DISPLAY_ALIASES = {
   "ACS Champions FC Arges": "FC Arges",
